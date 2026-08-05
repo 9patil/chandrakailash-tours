@@ -15,27 +15,25 @@ A responsive travel website for चंद्रकैलाश Tours & Travels w
 .
 ├── .git/
 ├── README.md
-├── chandrakailash-tours/
-│   ├── index.html
-│   ├── css/
-│   ├── js/
-│   ├── public/
-│   ├── src/
-│   ├── run_server.ps1
-│   └── server.ps1
+├── css/
+├── images/
+├── index.html
+├── js/
+├── public/
+├── src/
+├── run_server.ps1
+└── server.ps1
 ```
-
-> The actual website source is located inside the `chandrakailash-tours/` folder.
 
 ## How to Run Locally
 
 ### Option 1: Open in browser
 
-1. Open `chandrakailash-tours/index.html` in your browser.
+1. Open `index.html` in your browser.
 
 ### Option 2: Run the local PowerShell server
 
-1. Open PowerShell in the `chandrakailash-tours/` folder.
+1. Open PowerShell in the project root folder.
 2. Allow script execution for this session:
 
 ```powershell
@@ -52,12 +50,12 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 ## Key Files
 
-- `chandrakailash-tours/index.html` — Main landing page
-- `chandrakailash-tours/src/app.js` — JavaScript entry point
-- `chandrakailash-tours/src/styles/*.css` — Custom styling
-- `chandrakailash-tours/css/style.css` — Additional styling support
-- `chandrakailash-tours/run_server.ps1` — Simple local development server
-- `chandrakailash-tours/server.ps1` — Alternative server script
+- `index.html` — Main landing page
+- `src/app.js` — JavaScript entry point
+- `src/styles/*.css` — Custom styling
+- `css/style.css` — Additional styling support
+- `run_server.ps1` — Simple local development server
+- `server.ps1` — Alternative server script
 
 ## Notes
 
