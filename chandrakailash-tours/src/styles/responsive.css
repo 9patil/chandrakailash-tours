@@ -1,0 +1,135 @@
+/* चंद्रकैलाश Tours & Travels - Media Queries & Breakpoints */
+
+/* Base Reset for Horizontal Scroll Protection */
+html, body, #app {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* ====================================================
+   BREAKPOINT 1: iPhone SE (320px+)
+   ==================================================== */
+@media (min-width: 320px) {
+    .container-responsive {
+        width: 100%;
+        padding-left: 12px;
+        padding-right: 12px;
+        box-sizing: border-box;
+    }
+
+    .btn-responsive {
+        min-height: 48px;
+        font-size: 13px;
+        padding: 10px 14px;
+        border-radius: 12px;
+    }
+}
+
+/* ====================================================
+   BREAKPOINT 2: Small Mobile (375px+)
+   ==================================================== */
+@media (min-width: 375px) {
+    .container-responsive {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
+
+/* ====================================================
+   BREAKPOINT 3: Mobile (576px+)
+   ==================================================== */
+@media (min-width: 576px) {
+    .grid-mobile-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+/* ====================================================
+   BREAKPOINT 4: Tablet (768px+)
+   ==================================================== */
+@media (min-width: 768px) {
+    .grid-tablet-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .grid-tablet-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+/* ====================================================
+   BREAKPOINT 5: Laptop (992px+)
+   ==================================================== */
+@media (min-width: 992px) {
+    .grid-laptop-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .grid-laptop-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+}
+
+/* ====================================================
+   BREAKPOINT 6: Desktop (1200px+)
+   ==================================================== */
+@media (min-width: 1200px) {
+    .max-w-7xl {
+        max-width: 80rem; /* 1280px */
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* ====================================================
+   MOBILE HARD OVERFLOW PREVENTION RULES
+   ==================================================== */
+@media (max-width: 767px) {
+    /* Hide desktop table layouts and replace with card structures */
+    .desktop-table-only {
+        display: none !important;
+    }
+
+    .mobile-cards-only {
+        display: flex !important;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+    }
+
+    /* Wrap all long text without breaking container */
+    h1, h2, h3, h4, h5, h6, p, span, a, td, th {
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    /* Prevent modal overflow */
+    .modal-body-responsive {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 16px !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-cards-only {
+        display: none !important;
+    }
+    .desktop-table-only {
+        display: table !important;
+        width: 100%;
+    }
+}

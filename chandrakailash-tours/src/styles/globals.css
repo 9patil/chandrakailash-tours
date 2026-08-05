@@ -1,0 +1,340 @@
+/* चंद्रकैलाश Tours & Travels - Globals & Design Tokens */
+
+@import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Rozha+One&family=Mukta:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --navy-950: #061224;
+    --navy-900: #0B1F3A;
+    --navy-800: #162B4C;
+    --saffron-600: #E65100;
+    --saffron-500: #F57C00;
+    --saffron-400: #FF9800;
+    --wa-green: #25D366;
+    --cream-bg: #FFFDF7;
+    --light-grey: #F8FAFC;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--light-grey);
+    color: #0F172A;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Marathi Calligraphy & Typography */
+.font-marathi-calligraphy {
+    font-family: 'Yatra One', 'Rozha One', 'Mukta', cursive, serif;
+    letter-spacing: 0.01em;
+}
+
+.font-marathi-heading {
+    font-family: 'Rozha One', 'Yatra One', 'Mukta', serif;
+}
+
+.font-marathi-body {
+    font-family: 'Mukta', sans-serif;
+}
+
+/* Initial Smooth Loading Screen */
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #061224;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#loading-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-bar-fill {
+    height: 3px;
+    background: linear-gradient(90deg, #F57C00, #FF9800);
+    width: 0%;
+    animation: loadFill 0.8s ease forwards;
+}
+
+@keyframes loadFill {
+    to { width: 100%; }
+}
+
+/* Magnetic Cursor (Desktop Only) */
+@media (pointer: fine) {
+    #cursor-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #F57C00;
+        position: fixed;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        transition: transform 0.1s ease-out;
+    }
+    #cursor-ring {
+        width: 32px;
+        height: 32px;
+        border: 2px solid rgba(245, 124, 0, 0.4);
+        position: fixed;
+        top: -12px;
+        left: -12px;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9998;
+        transition: transform 0.18s ease-out;
+    }
+}
+
+/* Glassmorphism Header */
+.glass-header-transparent {
+    background: rgba(6, 18, 36, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 152, 0, 0.15);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* 3D PERSPECTIVE & TILT SYSTEM FOR TOUR PACKAGE CARDS */
+.card-perspective {
+    perspective: 1200px;
+}
+
+.card-3d-tilt {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.18s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+    will-change: transform;
+    border-radius: 1.25rem;
+    background: #FFFFFF;
+}
+
+.card-3d-tilt:hover {
+    border-color: rgba(245, 124, 0, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(11, 31, 58, 0.22), 0 0 25px 0 rgba(245, 124, 0, 0.15);
+}
+
+/* 3D INNER DEPTH LAYERS */
+.card-3d-layer-img {
+    transform: translateZ(20px);
+    transition: transform 0.3s ease;
+}
+
+.card-3d-tilt:hover .card-3d-layer-img {
+    transform: translateZ(35px) scale(1.04);
+}
+
+.card-3d-layer-badge {
+    transform: translateZ(45px);
+    transition: transform 0.3s ease;
+}
+
+.card-3d-layer-content {
+    transform: translateZ(25px);
+    transition: transform 0.3s ease;
+}
+
+.card-3d-layer-actions {
+    transform: translateZ(35px);
+    transition: transform 0.3s ease;
+}
+
+/* Dynamic 3D Glare Light Reflection Effect */
+.card-3d-glare {
+    position: absolute;
+    inset: 0;
+    border-radius: 1.25rem;
+    pointer-events: none;
+    z-index: 20;
+    background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card-3d-tilt:hover .card-3d-glare {
+    opacity: 1;
+}
+
+/* Soft Floating Effect on Cards */
+@keyframes softFloat {
+    0%, 100% { transform: translateY(0px) rotateX(0deg); }
+    50% { transform: translateY(-6px) rotateX(1deg); }
+}
+
+.animate-soft-float {
+    animation: softFloat 5s ease-in-out infinite;
+}
+
+/* BUTTON RIPPLE & GLOW ANIMATIONS */
+.btn-premium {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transform-style: preserve-3d;
+}
+
+.btn-premium:hover {
+    transform: translateY(-3px) translateZ(10px);
+}
+
+.btn-premium:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.btn-glow-saffron:hover {
+    box-shadow: 0 12px 28px -6px rgba(245, 124, 0, 0.45);
+}
+
+.btn-glow-green:hover {
+    box-shadow: 0 12px 28px -6px rgba(37, 211, 102, 0.45);
+}
+
+.btn-glow-navy:hover {
+    box-shadow: 0 12px 28px -6px rgba(11, 31, 58, 0.45);
+}
+
+/* Floating WhatsApp Pulse Animation */
+@keyframes waPulse {
+    0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+.wa-pulse-floating {
+    animation: waPulse 2s infinite;
+}
+
+/* Hero Sunrise Radial Glow */
+.hero-sunrise-radial {
+    background: radial-gradient(circle at 50% 25%, rgba(245, 124, 0, 0.24) 0%, rgba(230, 81, 0, 0.05) 50%, transparent 75%);
+}
+
+@keyframes cloudDrift {
+    0% { transform: translateX(-3%); }
+    50% { transform: translateX(3%); }
+    100% { transform: translateX(-3%); }
+}
+
+.animate-cloud-slow {
+    animation: cloudDrift 30s ease-in-out infinite;
+}
+
+/* Fade-in Page Transition */
+.fade-in-section {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #F57C00;
+}
+
+/* Badges */
+.badge-featured {
+    background: linear-gradient(135deg, #F57C00, #FF9800);
+    box-shadow: 0 4px 12px rgba(245, 124, 0, 0.35);
+}
+
+.badge-trending {
+    background: linear-gradient(135deg, #EC4899, #8B5CF6);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+}
+
+.badge-new {
+    background: linear-gradient(135deg, #10B981, #059669);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.badge-soldout {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.badge-upcoming {
+    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+.album-card-hover {
+    transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.3s ease;
+}
+
+.album-card-hover:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 20px 35px -10px rgba(11, 31, 58, 0.18);
+}
+
+.protected-media {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.package-card-clickable {
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s ease, border-color 0.3s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.package-card-clickable:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 25px 40px -12px rgba(11, 31, 58, 0.22);
+    border-color: rgba(245, 124, 0, 0.4);
+}
+
+.footer-pkg-link {
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.footer-pkg-link:hover {
+    color: #F57C00 !important;
+}
+
+.footer-pkg-link:hover .footer-link-arrow {
+    opacity: 1;
+    transform: translateX(4px);
+}

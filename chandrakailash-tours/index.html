@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>चंद्रकैलाश Tours & Travels | Religious & Family Tour Packages</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="title" content="चंद्रकैलाश Tours & Travels | Religious & Family Tour Packages">
+    <meta name="description" content="Maharashtra's premier luxury travel company. Char Dham Yatra, Kedarnath, Vrindavan, Khatu Shyam, Rishikesh & Rajasthan family tour packages with luxury AC Volvo bus.">
+    <meta name="keywords" content="चंद्रकैलाश Tours, Char Dham Yatra, Kedarnath Tour, Vrindavan Tour, Khatu Shyam Tour, Rishikesh Tour, Religious Tour Packages Maharashtra">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Rozha+One&family=Yatra+One&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom Stylesheets (Modular Responsive Architecture) -->
+    <link rel="stylesheet" href="src/styles/globals.css">
+    <link rel="stylesheet" href="src/styles/admin.css">
+    <link rel="stylesheet" href="src/styles/responsive.css">
+    <link rel="stylesheet" href="src/styles/print.css">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#F0F4F8',
+                            100: '#D9E2EC',
+                            800: '#162B4C',
+                            900: '#0B1F3A',
+                            950: '#061224'
+                        },
+                        saffron: {
+                            50: '#FFF7ED',
+                            100: '#FFEDD5',
+                            400: '#FF9800',
+                            500: '#F57C00',
+                            600: '#E65100',
+                            700: '#C2410C'
+                        },
+                        waGreen: {
+                            500: '#25D366',
+                            600: '#128C7E'
+                        },
+                        cream: '#FFFDF7',
+                        lightGrey: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        marathi: ['Mukta', 'sans-serif'],
+                        calligraphy: ['Yatra One', 'Rozha One', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- SheetJS CDN for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-lightGrey text-slate-800 antialiased min-h-screen flex flex-col">
+    
+    <!-- INITIAL SMOOTH LOADING SCREEN WITH BRAND LOGO -->
+    <div id="loading-screen">
+        <div class="text-center space-y-4 max-w-xs w-full px-4">
+            <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="mx-auto">
+                <circle cx="50" cy="40" r="26" fill="#F57C00"/>
+                <path d="M12 78L40 38L56 58L72 32L90 78H12Z" fill="#FFFFFF" stroke="#FF9800" stroke-width="3"/>
+                <rect x="30" y="68" width="40" height="14" rx="3" fill="#F57C00"/>
+                <circle cx="38" cy="82" r="2.5" fill="#FFFFFF"/>
+                <circle cx="62" cy="82" r="2.5" fill="#FFFFFF"/>
+            </svg>
+            <h2 class="text-3xl font-extrabold font-marathi-calligraphy text-white tracking-wide">चंद्रकैलाश</h2>
+            <p class="text-[10px] font-bold text-saffron-400 uppercase tracking-widest">TOURS & TRAVELS</p>
+            <div class="w-full bg-navy-900 rounded-full h-1 overflow-hidden mt-3">
+                <div class="loading-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAGNETIC CURSOR (DESKTOP) -->
+    <div id="cursor-dot" class="hidden md:block"></div>
+    <div id="cursor-ring" class="hidden md:block"></div>
+
+    <!-- Application Mount Container -->
+    <div id="app" class="min-h-screen flex flex-col"></div>
+
+    <!-- Application Script (ES Module Entry) -->
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>

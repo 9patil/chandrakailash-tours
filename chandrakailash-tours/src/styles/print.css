@@ -1,0 +1,71 @@
+/* Printable PDF Brochure Styles (A4 Clean Print Engine Isolation) */
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 5mm;
+    }
+    
+    html, body {
+        background: #ffffff !important;
+        color: #0B1F3A !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Completely collapse non-printable website tree so print height is exact */
+    #app > nav, 
+    #app > header, 
+    #app > main, 
+    #app > footer, 
+    .no-print, 
+    .wa-pulse-floating, 
+    .wa-pulse-mobile {
+        display: none !important;
+    }
+
+    /* Unconstrain overlay wrapper */
+    #printable-modal-overlay {
+        position: static !important;
+        inset: auto !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    /* Target modal container cleanly */
+    #printable-itinerary-modal {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 2mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+        border-radius: 0 !important;
+        page-break-after: avoid;
+        page-break-inside: auto;
+    }
+
+    .pdf-itinerary-card {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        -webkit-column-break-inside: avoid !important;
+    }
+}
