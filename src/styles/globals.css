@@ -338,3 +338,37 @@ html, body {
     opacity: 1;
     transform: translateX(4px);
 }
+
+/* LIGHTBOX ANIMATIONS & RESPONSIVE GESTURES */
+@keyframes lightboxFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes lightboxScaleIn {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fade-in {
+    animation: lightboxFadeIn 0.25s ease-out forwards;
+}
+
+.animate-scale-in {
+    animation: lightboxScaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.touch-action-none {
+    touch-action: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+

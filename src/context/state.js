@@ -52,6 +52,10 @@ export const state = {
     activeLightboxPhoto: null,
     lightboxPhotoIndex: 0,
     lightboxPhotoList: [],
+    lightboxAlbumTitle: '',
+    lightboxCustomTitle: '',
+    lightboxScale: 1,
+    lightboxPan: { x: 0, y: 0 },
     lightboxZoomed: false,
 
     // Filters

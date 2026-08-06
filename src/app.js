@@ -402,8 +402,29 @@ function attachMicroAnimations() {
     });
 }
 
+// Global Keyboard Navigation for Lightbox & Modals
+window.addEventListener('keydown', (e) => {
+    if (!state.activeLightboxPhoto) return;
+
+    if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        window.prevLightboxPhoto();
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        window.nextLightboxPhoto();
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        window.closeLightbox();
+    }
+});
+
 // Initial App Bootstrapping & Dynamic Route Listener
 window.addEventListener('hashchange', () => {
+    if (window.syncRouteFromURL) window.syncRouteFromURL();
+    if (window.renderApp) window.renderApp();
+});
+
+window.addEventListener('popstate', () => {
     if (window.syncRouteFromURL) window.syncRouteFromURL();
     if (window.renderApp) window.renderApp();
 });
@@ -415,3 +436,4 @@ initStorage(() => {
 
 if (window.syncRouteFromURL) window.syncRouteFromURL();
 render();
+

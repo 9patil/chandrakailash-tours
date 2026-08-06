@@ -7,6 +7,7 @@ import { openPrintablePdf, renderPrintableItineraryModal } from '../utils/pdfGen
 import { renderAdminView } from './adminPage.js';
 import { handleAdminLogin } from './adminLoginHandler.js';
 import { saveStore } from '../services/storage.js';
+import { renderLightboxModal } from '../components/public/lightbox.js';
 
 export function getActiveHeroSlides() {
     const heroPkgs = (state.packages || [])
@@ -214,11 +215,11 @@ export function renderPublicGalleryView() {
     if (state.selectedAlbum) {
         const album = state.selectedAlbum;
         return `
-            <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+            <div class="max-w-7xl mx-auto px-4 py-8 space-y-6 animate-fade-in">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                     <div>
-                        <button onclick="state.selectedAlbum=null; window.renderApp();" class="text-saffron-600 font-bold text-xs flex items-center gap-1.5 hover:underline mb-2 min-h-[40px]">
-                            <i class="fa-solid fa-arrow-left"></i> Back to Albums Gallery
+                        <button onclick="window.backToGallery(event)" class="text-saffron-600 hover:text-saffron-700 font-extrabold text-xs sm:text-sm flex items-center gap-2 hover:underline mb-2 min-h-[44px] cursor-pointer select-none" aria-label="Back to Albums Gallery">
+                            <i class="fa-solid fa-arrow-left"></i> <span>Back to Albums Gallery</span>
                         </button>
                         <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 flex items-center gap-2">
                             📁 ${album.title}
@@ -235,16 +236,17 @@ export function renderPublicGalleryView() {
                 </div>
 
                 ${(!album.photos || album.photos.length === 0) ? `
-                    <div class="text-center py-16 bg-slate-50 rounded-2xl border text-slate-400 text-xs">
-                        <i class="fa-solid fa-images text-4xl mb-2"></i>
-                        <p>No photos uploaded in this album yet.</p>
+                    <div class="text-center py-16 bg-slate-50 rounded-2xl border border-slate-200 text-slate-500 text-xs space-y-2">
+                        <i class="fa-solid fa-images text-4xl text-saffron-500 mb-1"></i>
+                        <p class="font-bold text-sm text-navy-900">No photos available in this album yet.</p>
+                        <p class="text-slate-400">Photos will be uploaded soon by our tour managers.</p>
                     </div>
                 ` : `
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
                         ${album.photos.map((photo, idx) => `
                             <div 
-                                onclick="window.openAlbumLightbox('${album.id}', ${idx})" 
-                                class="h-64 bg-slate-900 rounded-2xl overflow-hidden shadow-sm cursor-pointer relative group border border-slate-200 album-card-hover"
+                                onclick="window.openAlbumPhoto('${album.id}', ${idx})" 
+                                class="h-60 sm:h-64 bg-slate-900 rounded-2xl overflow-hidden shadow-sm cursor-pointer relative group border border-slate-200 album-card-hover"
                             >
                                 <img src="${photo.image}" alt="${photo.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 protected-media" loading="lazy" oncontextmenu="return false;" />
                                 
@@ -264,9 +266,12 @@ export function renderPublicGalleryView() {
         `;
     }
 
-    const destinations = ['all', 'Char Dham', 'Vrindavan', 'Rishikesh', 'Khatu Shyam', 'Dwarka', 'Rajasthan', 'Gujarat', 'Adventure', 'Family Tour', 'Customer Memories'];
-    const extractedYears = Array.from(new Set((state.albums || []).map(a => a.year).filter(Boolean))).sort().reverse();
-    const years = ['all', ...(extractedYears.length > 0 ? extractedYears : ['2027', '2026', '2025'])];
+    const defaultCategories = ['all', 'Char Dham', 'Vrindavan', 'Rishikesh', 'Khatu Shyam', 'Dwarka', 'Rajasthan', 'Gujarat', 'Adventure', 'Family Tour', 'Customer Memories'];
+    const albumCategories = (state.albums || []).map(a => a.category).filter(Boolean);
+    const destinations = Array.from(new Set([...defaultCategories, ...albumCategories]));
+
+    const extractedYears = Array.from(new Set((state.albums || []).map(a => a.year).filter(Boolean))).sort((a, b) => b.localeCompare(a));
+    const years = ['all', ...extractedYears];
 
     const filteredAlbums = (state.albums || []).filter(a => {
         const matchDest = state.galleryDestFilter === 'all' || a.category === state.galleryDestFilter;
@@ -275,66 +280,151 @@ export function renderPublicGalleryView() {
     });
 
     return `
-        <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
-            <div class="text-center max-w-xl mx-auto space-y-2">
-                <span class="text-saffron-500 font-bold text-xs uppercase tracking-wider">Instagram & Yatra Memories</span>
-                <h1 class="text-2xl sm:text-4xl font-extrabold text-navy-900">📸 Photo Gallery & Albums</h1>
-                <p class="text-xs text-slate-500">Explore authentic photo albums from pilgrimage batches across India.</p>
+        <div id="gallery-main-section" class="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="text-saffron-500 font-extrabold text-xs uppercase tracking-widest">✨ CHANDRAKAILASH TRAVEL MEMORIES</span>
+                <h1 class="text-2xl sm:text-4xl font-extrabold text-navy-900">Photo Gallery & Tour Albums</h1>
+                <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">Relive unforgettable journeys from our religious, family and adventure tours across India.</p>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
-                <div class="flex items-center gap-2 overflow-x-auto pb-1 w-full md:w-auto">
-                    <span class="font-bold text-slate-500 flex items-center gap-1 mr-1"><i class="fa-solid fa-filter"></i> Category:</span>
-                    ${destinations.map(d => `
-                        <button onclick="state.galleryDestFilter='${d}'; window.renderApp();" class="px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap ${state.galleryDestFilter === d ? 'bg-saffron-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-                            ${d === 'all' ? '📁 All Categories' : d}
-                        </button>
-                    `).join('')}
-                </div>
+            <!-- LUXURY STICKY DYNAMIC FILTER BAR (TWO ROWS) -->
+            <div class="sticky top-16 z-30 bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xl border border-slate-200/80 space-y-4 max-w-7xl mx-auto transition-all">
+                
+                <!-- FIRST ROW: CATEGORIES -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-navy-900 text-xs sm:text-sm tracking-wide flex items-center gap-2">
+                            <span>📂</span> <span>Categories</span>
+                        </span>
+                        ${state.galleryDestFilter !== 'all' ? `
+                            <button onclick="window.setGalleryFilter('category', 'all')" class="text-[11px] text-saffron-600 hover:underline font-bold flex items-center gap-1">
+                                <span>Reset Category</span> ✕
+                            </button>
+                        ` : ''}
+                    </div>
 
-                <div class="flex items-center gap-2">
-                    <span class="font-bold text-slate-500"><i class="fa-solid fa-calendar font-bold"></i> Year:</span>
-                    ${years.map(y => `
-                        <button onclick="state.galleryYearFilter='${y}'; window.renderApp();" class="px-3 py-1.5 rounded-xl font-bold transition ${state.galleryYearFilter === y ? 'bg-navy-900 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-                            ${y === 'all' ? 'All Years' : y}
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
+                    <div class="relative group">
+                        <!-- Fade Indicators -->
+                        <div class="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-white to-transparent z-10"></div>
+                        <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent z-10"></div>
 
-            <div class="admin-albums-grid">
-                ${filteredAlbums.map(alb => `
-                    <div 
-                        onclick="state.selectedAlbum = state.albums.find(a => a.id === '${alb.id}'); window.renderApp();" 
-                        class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer group album-card-hover flex flex-col justify-between"
-                    >
-                        <div class="relative h-52 sm:h-56 bg-slate-900 overflow-hidden">
-                            <img src="${alb.coverImage || (alb.photos && alb.photos[0] ? alb.photos[0].image : 'images/himalayan_yatra.jpg')}" alt="${alb.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 protected-media" loading="lazy" oncontextmenu="return false;" />
-                            
-                            <span class="absolute top-3 left-3 badge-featured text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow">
-                                📍 ${alb.category}
-                            </span>
-                            
-                            <span class="absolute top-3 right-3 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
-                                📅 ${alb.year || '2026'}
-                            </span>
-
-                            <div class="absolute bottom-3 right-3 bg-navy-950/90 text-saffron-400 text-xs font-bold px-3 py-1 rounded-xl shadow backdrop-blur border border-saffron-500/30 flex items-center gap-1.5">
-                                <i class="fa-solid fa-camera"></i> ${(alb.photos || []).length} Photos
-                            </div>
-                        </div>
-
-                        <div class="p-4 space-y-1 bg-white border-t">
-                            <h3 class="font-bold text-base text-navy-900 group-hover:text-saffron-600 transition line-clamp-1">${alb.title}</h3>
-                            <p class="text-xs text-slate-500 line-clamp-2">${alb.description || 'View divine journey photos and batch memories.'}</p>
-                            
-                            <div class="pt-2 text-xs text-saffron-600 font-bold flex items-center gap-1 hover:underline">
-                                <span>Open Album Gallery</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                            </div>
+                        <div 
+                            class="flex items-center gap-2 sm:gap-2.5 overflow-x-auto py-1 px-1 scrollbar-none w-full select-none cursor-grab active:cursor-grabbing"
+                            id="gallery-category-chips"
+                            onwheel="window.handleChipWheelScroll(event)"
+                        >
+                            ${destinations.map(d => {
+                                const isActive = state.galleryDestFilter === d;
+                                return `
+                                    <button 
+                                        type="button"
+                                        onclick="window.setGalleryFilter('category', '${d}', this)" 
+                                        class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap min-h-[44px] flex items-center gap-2 cursor-pointer flex-shrink-0 ${
+                                            isActive 
+                                            ? 'bg-gradient-to-r from-saffron-500 to-saffron-600 text-white shadow-lg shadow-saffron-500/30 scale-105 border border-saffron-400 font-extrabold' 
+                                            : 'bg-white text-slate-700 hover:text-saffron-600 hover:border-saffron-400 hover:-translate-y-0.5 hover:shadow-md border border-slate-200/80 shadow-sm'
+                                        }"
+                                    >
+                                        ${d === 'all' ? '📁 All Categories' : d}
+                                    </button>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
-                `).join('')}
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="border-t border-slate-100"></div>
+
+                <!-- SECOND ROW: BROWSE BY YEAR -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-navy-900 text-xs sm:text-sm tracking-wide flex items-center gap-2">
+                            <span>🗓</span> <span>Browse by Year</span>
+                        </span>
+                        ${state.galleryYearFilter !== 'all' ? `
+                            <button onclick="window.setGalleryFilter('year', 'all')" class="text-[11px] text-saffron-600 hover:underline font-bold flex items-center gap-1">
+                                <span>Reset Year</span> ✕
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    <div class="relative group">
+                        <div 
+                            class="flex items-center gap-2 sm:gap-2.5 overflow-x-auto py-1 px-1 scrollbar-none w-full select-none"
+                            id="gallery-year-chips"
+                            onwheel="window.handleChipWheelScroll(event)"
+                        >
+                            ${years.map(y => {
+                                const isActive = state.galleryYearFilter === y;
+                                return `
+                                    <button 
+                                        type="button"
+                                        onclick="window.setGalleryFilter('year', '${y}', this)" 
+                                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap min-h-[44px] flex items-center gap-1.5 cursor-pointer flex-shrink-0 ${
+                                            isActive 
+                                            ? 'bg-gradient-to-r from-saffron-500 to-saffron-600 text-white shadow-lg shadow-saffron-500/30 scale-105 border border-saffron-400 font-extrabold' 
+                                            : 'bg-white text-slate-700 hover:text-saffron-600 hover:border-saffron-400 hover:-translate-y-0.5 hover:shadow-md border border-slate-200/80 shadow-sm'
+                                        }"
+                                    >
+                                        ${y === 'all' ? 'All Years' : y}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- ALBUMS GRID OR PREMIUM EMPTY STATE WITH 200ms FADE -->
+            ${filteredAlbums.length === 0 ? `
+                <div class="text-center py-16 px-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-md mx-auto my-8 animate-fade-in">
+                    <div class="w-20 h-20 bg-saffron-50 text-saffron-500 rounded-full flex items-center justify-center text-4xl mx-auto shadow-inner border border-saffron-200">
+                        🖼️
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-xl font-extrabold text-navy-900">No Albums Found</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-medium">No travel memories are available for this selection.</p>
+                    </div>
+                    <button onclick="window.clearGalleryFilters()" class="btn-touch-48 bg-saffron-500 hover:bg-saffron-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-md transition transform hover:scale-105 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> <span>Clear Filters</span>
+                    </button>
+                </div>
+            ` : `
+                <div class="admin-albums-grid transition-opacity duration-200 animate-fade-in">
+                    ${filteredAlbums.map(alb => `
+                        <div 
+                            onclick="window.openAlbum('${alb.id}')" 
+                            class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer group album-card-hover flex flex-col justify-between"
+                        >
+                            <div class="relative h-52 sm:h-56 bg-slate-900 overflow-hidden" onclick="window.openAlbum('${alb.id}')">
+                                <img src="${alb.coverImage || (alb.photos && alb.photos[0] ? alb.photos[0].image : 'images/himalayan_yatra.jpg')}" alt="${alb.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 protected-media" loading="lazy" oncontextmenu="return false;" />
+                                
+                                <span class="absolute top-3 left-3 badge-featured text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow">
+                                    📍 ${alb.category}
+                                </span>
+                                
+                                <span class="absolute top-3 right-3 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                                    📅 ${alb.year || '2026'}
+                                </span>
+
+                                <div class="absolute bottom-3 right-3 bg-navy-950/90 text-saffron-400 text-xs font-bold px-3 py-1 rounded-xl shadow backdrop-blur border border-saffron-500/30 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-camera"></i> ${(alb.photos || []).length} Photos
+                                </div>
+                            </div>
+
+                            <div class="p-4 space-y-1 bg-white border-t">
+                                <h3 class="font-bold text-base text-navy-900 group-hover:text-saffron-600 transition line-clamp-1">${alb.title}</h3>
+                                <p class="text-xs text-slate-500 line-clamp-2">${alb.description || 'View divine journey photos and batch memories.'}</p>
+                                
+                                <button type="button" onclick="event.stopPropagation(); window.openAlbum('${alb.id}')" class="pt-2 text-xs text-saffron-600 font-bold flex items-center gap-1 hover:underline w-full text-left min-h-[36px]">
+                                    <span>Open Album Gallery</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
         </div>
     `;
 }
@@ -375,9 +465,9 @@ export function renderMainView(filteredPkgs) {
                 </div>
 
                 <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-                    ${(state.albums || []).flatMap(a => a.photos || []).slice(0, 8).map(p => `
-                        <div onclick="window.openLightboxSingle('${p.image}', '${p.title}')" class="h-40 sm:h-48 rounded-xl overflow-hidden shadow-md cursor-pointer relative group border border-slate-800">
-                            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" loading="lazy" />
+                    ${(state.albums || []).flatMap(a => (a.photos || []).map((p, idx) => ({ ...p, albumId: a.id, photoIdx: idx }))).slice(0, 8).map(p => `
+                        <div onclick="window.openAlbumPhoto('${p.albumId}', ${p.photoIdx})" class="h-40 sm:h-48 rounded-xl overflow-hidden shadow-md cursor-pointer relative group border border-slate-800">
+                            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 protected-media" loading="lazy" />
                             <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3 text-xs font-bold text-white">
                                 <span class="line-clamp-1">${p.title}</span>
                             </div>
@@ -597,7 +687,7 @@ export function renderModals() {
                             </h4>
                             <div class="flex items-center gap-3 overflow-x-auto pb-2">
                                 ${pkgGallery.map((img, idx) => `
-                                    <div onclick="window.openLightboxSingle('${img}', '${pkg.name} - Photo ${idx+1}')" class="w-28 h-20 flex-shrink-0 rounded-xl overflow-hidden shadow-sm cursor-pointer border hover:border-saffron-500 transition relative group">
+                                    <div onclick="window.openPackagePhoto('${pkg.id}', ${idx})" class="w-28 h-20 flex-shrink-0 rounded-xl overflow-hidden shadow-sm cursor-pointer border hover:border-saffron-500 transition relative group">
                                         <img src="${img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 protected-media" oncontextmenu="return false;" />
                                     </div>
                                 `).join('')}
@@ -1148,55 +1238,7 @@ export function renderModals() {
         `;
     }
 
-    if (state.activeLightboxPhoto) {
-        const photo = state.activeLightboxPhoto;
-        const index = state.lightboxPhotoIndex;
-        const total = state.lightboxPhotoList.length;
-
-        html += `
-            <div class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 no-print" oncontextmenu="return false;">
-                <div class="flex justify-between items-center text-white z-10 px-2">
-                    <div>
-                        <h4 class="font-bold text-sm md:text-base">${photo.title || 'Photo View'}</h4>
-                        ${total > 1 ? `<span class="text-xs text-saffron-400 font-semibold">Photo ${index + 1} of ${total}</span>` : ''}
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <button onclick="window.closeLightbox()" class="bg-white/20 hover:bg-white/30 text-white w-9 h-9 rounded-full font-bold shadow text-sm min-h-[36px] flex items-center justify-center">
-                            ✕
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex-1 flex items-center justify-center relative overflow-hidden my-auto p-2">
-                    ${total > 1 ? `
-                        <button onclick="window.prevLightboxPhoto()" class="absolute left-2 md:left-6 z-20 w-12 h-12 rounded-full bg-black/60 hover:bg-saffron-500 text-white text-lg font-bold flex items-center justify-center backdrop-blur transition shadow-2xl min-h-[48px]">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                    ` : ''}
-
-                    <div class="max-h-full max-w-full flex items-center justify-center overflow-auto">
-                        <img 
-                            src="${photo.image}" 
-                            alt="${photo.title}" 
-                            class="max-h-[80vh] max-w-full rounded-2xl shadow-2xl transition-transform duration-300 protected-media" 
-                            oncontextmenu="return false;"
-                        />
-                    </div>
-
-                    ${total > 1 ? `
-                        <button onclick="window.nextLightboxPhoto()" class="absolute right-2 md:right-6 z-20 w-12 h-12 rounded-full bg-black/60 hover:bg-saffron-500 text-white text-lg font-bold flex items-center justify-center backdrop-blur transition shadow-2xl min-h-[48px]">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    ` : ''}
-                </div>
-
-                <div class="text-center text-xs text-slate-400 z-10 pt-2 border-t border-white/10">
-                    <span>Protected Image View • Chandrakailash Tours & Travels</span>
-                </div>
-            </div>
-        `;
-    }
+    html += renderLightboxModal();
 
     if (state.showPdfModal) {
         html += renderPrintableItineraryModal();
@@ -2023,18 +2065,129 @@ window.toggleAddReviewModal = function() {
     if (window.renderApp) window.renderApp();
 };
 
+window.handleChipWheelScroll = function(e) {
+    if (!e.currentTarget) return;
+    if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+        e.preventDefault();
+        e.currentTarget.scrollLeft += e.deltaY * 0.8;
+    }
+};
+
+window.setGalleryFilter = function(type, value, btnEl) {
+    if (type === 'category') {
+        state.galleryDestFilter = value;
+    } else if (type === 'year') {
+        state.galleryYearFilter = value;
+    }
+
+    window.updateGalleryURLParams();
+
+    if (btnEl && typeof btnEl.scrollIntoView === 'function') {
+        try {
+            btnEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } catch (e) {}
+    }
+
+    if (window.renderApp) window.renderApp();
+};
+
+window.clearGalleryFilters = function() {
+    state.galleryDestFilter = 'all';
+    state.galleryYearFilter = 'all';
+    window.updateGalleryURLParams();
+    if (window.renderApp) window.renderApp();
+};
+
+window.updateGalleryURLParams = function() {
+    try {
+        const url = new URL(window.location.href);
+        if (state.galleryDestFilter && state.galleryDestFilter !== 'all') {
+            url.searchParams.set('category', state.galleryDestFilter);
+        } else {
+            url.searchParams.delete('category');
+        }
+
+        if (state.galleryYearFilter && state.galleryYearFilter !== 'all') {
+            url.searchParams.set('year', state.galleryYearFilter);
+        } else {
+            url.searchParams.delete('year');
+        }
+
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    } catch (e) {}
+};
+
+window.backToGallery = function(e) {
+    if (e) e.preventDefault();
+
+    state.activeLightboxPhoto = null;
+    state.selectedAlbum = null;
+    state.activeTab = 'gallery';
+
+    if (window.location.hash !== '#gallery') {
+        try {
+            history.pushState(null, '', '#gallery');
+        } catch (err) {
+            window.location.hash = '#gallery';
+        }
+    }
+
+    if (window.renderApp) window.renderApp();
+
+    setTimeout(() => {
+        const galleryEl = document.getElementById('gallery-main-section');
+        if (galleryEl) {
+            galleryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (state.galleryScrollPos !== undefined) {
+            window.scrollTo({ top: state.galleryScrollPos, behavior: 'smooth' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, 50);
+};
+
 window.syncRouteFromURL = function() {
+    try {
+        const url = new URL(window.location.href);
+        const catParam = url.searchParams.get('category');
+        const yearParam = url.searchParams.get('year');
+        if (catParam) state.galleryDestFilter = catParam;
+        if (yearParam) state.galleryYearFilter = yearParam;
+    } catch (e) {}
+
     const hash = window.location.hash || '';
     const path = window.location.pathname || '';
 
-    let targetIdentifier = null;
-    const matchPath = path.match(/\/package\/([^\/]+)/i);
-    const matchHash = hash.match(/#\/?package[\/-]([^\/]+)/i);
+    // 1. Album routing: #gallery/alb-1 or #album/alb-1
+    const matchAlbumHash = hash.match(/#\/?(?:gallery|album)[\/-]([^\/]+)/i);
+    const matchAlbumPath = path.match(/\/album\/([^\/]+)/i);
+    const albumId = (matchAlbumHash && matchAlbumHash[1]) ? decodeURIComponent(matchAlbumHash[1]) : (matchAlbumPath && matchAlbumPath[1] ? decodeURIComponent(matchAlbumPath[1]) : null);
 
-    if (matchPath && matchPath[1]) {
-        targetIdentifier = decodeURIComponent(matchPath[1]);
-    } else if (matchHash && matchHash[1]) {
-        targetIdentifier = decodeURIComponent(matchHash[1]);
+    if (albumId) {
+        const alb = (state.albums || []).find(a => a.id === albumId || (a.title && createSlug(a.title) === albumId));
+        if (alb) {
+            state.activeTab = 'gallery';
+            state.selectedAlbum = alb;
+            return;
+        }
+    }
+
+    // 2. Main Gallery route: #gallery
+    if (hash === '#gallery' || hash === '#/gallery' || path.endsWith('/gallery')) {
+        state.activeTab = 'gallery';
+        state.selectedAlbum = null;
+        return;
+    }
+
+    // 3. Package routing: #package/pkg-1
+    let targetIdentifier = null;
+    const matchPkgPath = path.match(/\/package\/([^\/]+)/i);
+    const matchPkgHash = hash.match(/#\/?package[\/-]([^\/]+)/i);
+
+    if (matchPkgPath && matchPkgPath[1]) {
+        targetIdentifier = decodeURIComponent(matchPkgPath[1]);
+    } else if (matchPkgHash && matchPkgHash[1]) {
+        targetIdentifier = decodeURIComponent(matchPkgHash[1]);
     }
 
     if (targetIdentifier) {
@@ -2046,6 +2199,16 @@ window.syncRouteFromURL = function() {
         if (pkg) {
             state.selectedPkg = pkg;
             state.activeAccordion = 'itinerary';
+            return;
+        }
+    }
+
+    // 4. Standard tab routing: #packages, #about, #contact, #home
+    const tabMatch = hash.match(/#\/?(home|packages|gallery|about|contact|admin)/i);
+    if (tabMatch && tabMatch[1]) {
+        state.activeTab = tabMatch[1].toLowerCase();
+        if (state.activeTab !== 'gallery') {
+            state.selectedAlbum = null;
         }
     }
 };
