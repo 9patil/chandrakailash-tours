@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error('❌ saveAlbum API Error:', err);
         return res.status(500).json({
-            error: 'GitHub Sync Failed: ' + (err.message || 'Unknown server error')
+            error: err.message || 'Unknown server error'
         });
     }
 }
