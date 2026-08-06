@@ -9,14 +9,14 @@ async function sha256(str) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function handleAdminLogin(event) {
+export async function performAdminLogin(event) {
     if (event) event.preventDefault();
     const user = document.getElementById('adm_user')?.value.trim() || '';
     const pass = document.getElementById('adm_pass')?.value.trim() || '';
 
     if (!user || !pass) {
         state.loginErrorMessage = 'Please enter both username and password.';
-        return;
+        return false;
     }
 
     const userHash = await sha256(user);
@@ -30,12 +30,15 @@ export async function handleAdminLogin(event) {
         state.showLoginModal = false;
         state.loginErrorMessage = '';
         state.activeTab = 'admin';
+        document.body.style.overflow = '';
         if (!state.settings.adminUserHash || !state.settings.adminPassHash) {
             state.settings.adminUserHash = INITIAL_SETTINGS.adminUserHash;
             state.settings.adminPassHash = INITIAL_SETTINGS.adminPassHash;
             saveStore(window.renderApp);
         }
+        return true;
     } else {
         state.loginErrorMessage = 'Incorrect admin username or password. Please try again.';
+        return false;
     }
 }

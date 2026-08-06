@@ -7,6 +7,7 @@ import { openPrintablePdf, renderPrintableItineraryModal } from '../utils/pdfGen
 import { renderAdminView } from './adminPage.js';
 import { saveStore, savePackageCloud, saveAlbumCloud, saveSettingsCloud } from '../services/storage.js';
 import { renderLightboxModal } from '../components/public/lightbox.js';
+import { performAdminLogin } from './adminLoginHandler.js';
 
 export function getActiveHeroSlides() {
     const heroPkgs = (state.packages || [])
@@ -1965,6 +1966,7 @@ window.closeAdminModal = window.closeAdminLoginModal;
 export function attachAdminLoginListeners() {
     const closeBtn = document.getElementById('admin-login-close-btn');
     const cancelBtn = document.getElementById('admin-login-cancel-btn');
+    const submitBtn = document.getElementById('admin-login-submit-btn');
     if (closeBtn) {
         closeBtn.removeEventListener('click', window.closeAdminLoginModal);
         closeBtn.addEventListener('click', window.closeAdminLoginModal);
@@ -1972,6 +1974,10 @@ export function attachAdminLoginListeners() {
     if (cancelBtn) {
         cancelBtn.removeEventListener('click', window.closeAdminLoginModal);
         cancelBtn.addEventListener('click', window.closeAdminLoginModal);
+    }
+    if (submitBtn) {
+        submitBtn.removeEventListener('click', window.handleAdminLogin);
+        submitBtn.addEventListener('click', window.handleAdminLogin);
     }
 }
 
@@ -2172,7 +2178,7 @@ window.handleCreateAlbumSubmit = async function(e) {
 
 window.handleAdminLogin = async function(e) {
     if (e) e.preventDefault();
-    await handleAdminLogin(e);
+    await performAdminLogin(e);
     if (window.renderApp) window.renderApp();
 };
 
