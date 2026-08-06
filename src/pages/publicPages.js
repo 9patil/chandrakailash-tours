@@ -1960,6 +1960,21 @@ window.closeAdminLoginModal = function(e) {
     if (window.renderApp) window.renderApp();
 };
 
+window.closeAdminModal = window.closeAdminLoginModal;
+
+export function attachAdminLoginListeners() {
+    const closeBtn = document.getElementById('admin-login-close-btn');
+    const cancelBtn = document.getElementById('admin-login-cancel-btn');
+    if (closeBtn) {
+        closeBtn.removeEventListener('click', window.closeAdminLoginModal);
+        closeBtn.addEventListener('click', window.closeAdminLoginModal);
+    }
+    if (cancelBtn) {
+        cancelBtn.removeEventListener('click', window.closeAdminLoginModal);
+        cancelBtn.addEventListener('click', window.closeAdminLoginModal);
+    }
+}
+
 if (!window._pkgEditorListenersAttached) {
     window._pkgEditorListenersAttached = true;
 

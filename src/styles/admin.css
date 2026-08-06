@@ -565,3 +565,29 @@
     border-color: #FDA4AF;
 }
 
+/* ADMIN CMS LOGIN MODAL STYLES & Z-INDEX HIERARCHY */
+#admin-login-backdrop {
+    z-index: 9998 !important;
+    pointer-events: auto !important;
+}
+
+#admin-login-modal-card {
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+    position: relative !important;
+}
+
+#admin-login-close-btn {
+    z-index: 10000 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+#admin-login-cancel-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+}
+

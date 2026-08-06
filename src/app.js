@@ -7,7 +7,7 @@ import { state, uploaderState } from './context/state.js';
 import { initStorage, saveStore } from './services/storage.js';
 import { t, toggleLanguage } from './utils/i18n.js';
 import { getWhatsAppUrl, getInstagramUrl, renderLogoSvg, compressImageFile } from './utils/helpers.js';
-import { renderMainView, renderModals } from './pages/publicPages.js';
+import { renderMainView, renderModals, attachAdminLoginListeners } from './pages/publicPages.js';
 
 export function render() {
     const loadingScreen = document.getElementById('loading-screen');
@@ -188,6 +188,7 @@ export function render() {
         ${renderModals()}
     `;
 
+    attachAdminLoginListeners();
     attachMicroAnimations();
 }
 
