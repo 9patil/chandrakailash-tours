@@ -1,4 +1,4 @@
-import { getFileFromGithub, commitFileToGithub } from './utils/github.js';
+import { getFileFromGithub, commitFileToGithub, verifyGithubAuth } from './utils/github.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -6,6 +6,7 @@ export default async function handler(req, res) {
     }
 
     try {
+        await verifyGithubAuth();
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const { packageId } = body || {};
 

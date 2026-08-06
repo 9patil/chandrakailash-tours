@@ -154,3 +154,13 @@ export async function saveSettingsCloud(settingsData) {
     console.log('Done.');
     return data;
 }
+
+export async function verifyGithubSync() {
+    try {
+        const res = await fetch('/api/verifyGithub');
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        return { success: false, configured: false, message: err.message || 'Network error' };
+    }
+}
