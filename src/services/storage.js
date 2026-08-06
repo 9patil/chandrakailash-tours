@@ -1,120 +1,115 @@
-/* चंद्रकैलाश Tours & Travels - Local Browser Storage Service (100% Free Plan Compatible) */
+/* चंद्रकैलाश Tours & Travels - Persistent Storage Service (IndexedDB + LocalStorage) */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
 
-const STORAGE_KEYS = {
-    PACKAGES: 'ck_packages_v1',
-    ALBUMS: 'ck_albums_v1',
-    SETTINGS: 'ck_settings_v1',
-    REVIEWS: 'ck_reviews_v1'
-};
+const DB_NAME = 'ChandrakailashToursDB';
+const DB_VERSION = 2;
+const STORE_NAME = 'app_state';
 
-export async function fetchLocalOrStaticData() {
+function openDB() {
+    return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+    });
+}
+
+export async function saveToIndexedDB(key, val) {
     try {
-        const localPkgs = localStorage.getItem(STORAGE_KEYS.PACKAGES);
-        const localAlbums = localStorage.getItem(STORAGE_KEYS.ALBUMS);
-        const localSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-        const localReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+        const db = await openDB();
+        if (!db) return;
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(val, key);
+    } catch (err) {
+        console.warn('IndexedDB save notice:', err);
+    }
+}
 
-        if (localPkgs) {
-            try { state.packages = JSON.parse(localPkgs); } catch (e) {}
-        }
-        if (localAlbums) {
-            try { state.albums = JSON.parse(localAlbums); } catch (e) {}
-        }
-        if (localSettings) {
-            try { state.settings = { ...state.settings, ...JSON.parse(localSettings) }; } catch (e) {}
-        }
-        if (localReviews) {
-            try { state.reviews = JSON.parse(localReviews); } catch (e) {}
-        }
-
-        // Fetch static JSON files if any key is missing in localStorage
-        const fetchPromises = [];
-        const timestamp = Date.now();
-
-        if (!localPkgs) {
-            fetchPromises.push(
-                fetch(`data/packages.json?v=${timestamp}`)
-                    .then(r => r.ok ? r.json() : null)
-                    .then(d => {
-                        if (d && Array.isArray(d)) {
-                            state.packages = d;
-                            localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(d));
-                        }
-                    })
-            );
-        }
-
-        if (!localAlbums) {
-            fetchPromises.push(
-                fetch(`data/albums.json?v=${timestamp}`)
-                    .then(r => r.ok ? r.json() : null)
-                    .then(d => {
-                        if (d && Array.isArray(d)) {
-                            state.albums = d;
-                            localStorage.setItem(STORAGE_KEYS.ALBUMS, JSON.stringify(d));
-                        }
-                    })
-            );
-        }
-
-        if (!localSettings) {
-            fetchPromises.push(
-                fetch(`data/settings.json?v=${timestamp}`)
-                    .then(r => r.ok ? r.json() : null)
-                    .then(d => {
-                        if (d && typeof d === 'object') {
-                            state.settings = { ...state.settings, ...d };
-                            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
-                        }
-                    })
-            );
-        }
-
-        if (!localReviews) {
-            fetchPromises.push(
-                fetch(`data/reviews.json?v=${timestamp}`)
-                    .then(r => r.ok ? r.json() : null)
-                    .then(d => {
-                        if (d && Array.isArray(d)) {
-                            state.reviews = d;
-                            localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(d));
-                        }
-                    })
-            );
-        }
-
-        if (fetchPromises.length > 0) {
-            await Promise.allSettled(fetchPromises);
-        }
-
-        ensurePackagesHaveSlugsAndHeroProps();
-    } catch (e) {
-        console.warn('⚠️ Local storage initialization notice:', e);
+export async function loadFromIndexedDB(key) {
+    try {
+        const db = await openDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    } catch (err) {
+        return null;
     }
 }
 
 export function saveStore(renderCallback) {
     try {
-        if (state.packages) localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(state.packages));
-        if (state.albums) localStorage.setItem(STORAGE_KEYS.ALBUMS, JSON.stringify(state.albums));
-        if (state.settings) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
-        if (state.reviews) localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(state.reviews));
-    } catch (e) {
-        console.error('Failed to write to localStorage:', e);
+        localStorage.setItem('ck_set_v21', JSON.stringify(state.settings));
+        localStorage.setItem('ck_pkgs_v21', JSON.stringify(state.packages));
+        localStorage.setItem('ck_alb_v21', JSON.stringify(state.albums));
+        localStorage.setItem('ck_rev_v21', JSON.stringify(state.reviews));
+        localStorage.setItem('ck_bk_v21', JSON.stringify(state.bookings));
+        localStorage.setItem('ck_i18n_v21', JSON.stringify(state.translations));
+    } catch (err) {
+        console.warn('LocalStorage save limit reached, state safely preserved in IndexedDB.', err);
     }
-
+    saveToIndexedDB('ck_full_state_v21', {
+        settings: state.settings,
+        packages: state.packages,
+        albums: state.albums,
+        reviews: state.reviews,
+        bookings: state.bookings,
+        translations: state.translations
+    });
     if (renderCallback && typeof renderCallback === 'function') {
         renderCallback();
     }
 }
 
-export async function initStorage(handleRouteCallback) {
-    await fetchLocalOrStaticData();
-    if (handleRouteCallback && typeof handleRouteCallback === 'function') {
-        handleRouteCallback();
-    }
+export function initStorage(handleRouteCallback) {
+    try {
+        const localPkgs = localStorage.getItem('ck_pkgs_v21');
+        if (localPkgs) {
+            const parsed = JSON.parse(localPkgs);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                state.packages = parsed;
+            }
+        }
+        const localSet = localStorage.getItem('ck_set_v21');
+        if (localSet) state.settings = JSON.parse(localSet);
+        const localAlb = localStorage.getItem('ck_alb_v21');
+        if (localAlb) state.albums = JSON.parse(localAlb);
+        const localRev = localStorage.getItem('ck_rev_v21');
+        if (localRev) state.reviews = JSON.parse(localRev);
+        const localBk = localStorage.getItem('ck_bk_v21');
+        if (localBk) state.bookings = JSON.parse(localBk);
+    } catch (e) {}
+
+    loadFromIndexedDB('ck_full_state_v21').then((savedState) => {
+        if (savedState) {
+            if (savedState.settings) state.settings = savedState.settings;
+            if (savedState.packages) state.packages = savedState.packages;
+            if (savedState.albums) state.albums = savedState.albums;
+            if (savedState.reviews) state.reviews = savedState.reviews;
+            if (savedState.bookings) state.bookings = savedState.bookings;
+            if (savedState.translations) state.translations = savedState.translations;
+        }
+        ensurePackagesHaveSlugsAndHeroProps();
+        if (handleRouteCallback && typeof handleRouteCallback === 'function') {
+            handleRouteCallback();
+        }
+    }).catch(err => {
+        console.warn('IndexedDB load warning:', err);
+        ensurePackagesHaveSlugsAndHeroProps();
+        if (handleRouteCallback && typeof handleRouteCallback === 'function') {
+            handleRouteCallback();
+        }
+    });
 }
 
 export async function savePackageCloud(packageData) {
@@ -125,7 +120,6 @@ export async function savePackageCloud(packageData) {
     } else {
         state.packages.unshift(packageData);
     }
-
     saveStore();
     return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
@@ -144,7 +138,6 @@ export async function saveAlbumCloud(albumData) {
     } else {
         state.albums.unshift(albumData);
     }
-
     saveStore();
     return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
