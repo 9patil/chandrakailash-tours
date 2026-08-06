@@ -1,166 +1,162 @@
-/* चंद्रकैलाश Tours & Travels - Central Cloud Storage Service (GitHub Single Source of Truth) */
+/* चंद्रकैलाश Tours & Travels - Local Browser Storage Service (100% Free Plan Compatible) */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
 
-export async function fetchCloudData() {
-    const timestamp = Date.now();
-    try {
-        console.log('🔄 Fetching live data from GitHub central repository...');
-        const [pkgsRes, albumsRes, settingsRes, reviewsRes] = await Promise.allSettled([
-            fetch(`data/packages.json?v=${timestamp}`, { cache: 'no-store' }),
-            fetch(`data/albums.json?v=${timestamp}`, { cache: 'no-store' }),
-            fetch(`data/settings.json?v=${timestamp}`, { cache: 'no-store' }),
-            fetch(`data/reviews.json?v=${timestamp}`, { cache: 'no-store' })
-        ]);
+const STORAGE_KEYS = {
+    PACKAGES: 'ck_packages_v1',
+    ALBUMS: 'ck_albums_v1',
+    SETTINGS: 'ck_settings_v1',
+    REVIEWS: 'ck_reviews_v1'
+};
 
-        if (pkgsRes.status === 'fulfilled' && pkgsRes.value.ok) {
-            const pkgs = await pkgsRes.value.json();
-            if (Array.isArray(pkgs)) state.packages = pkgs;
+export async function fetchLocalOrStaticData() {
+    try {
+        const localPkgs = localStorage.getItem(STORAGE_KEYS.PACKAGES);
+        const localAlbums = localStorage.getItem(STORAGE_KEYS.ALBUMS);
+        const localSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+        const localReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+
+        if (localPkgs) {
+            try { state.packages = JSON.parse(localPkgs); } catch (e) {}
         }
-        if (albumsRes.status === 'fulfilled' && albumsRes.value.ok) {
-            const albums = await albumsRes.value.json();
-            if (Array.isArray(albums)) state.albums = albums;
+        if (localAlbums) {
+            try { state.albums = JSON.parse(localAlbums); } catch (e) {}
         }
-        if (settingsRes.status === 'fulfilled' && settingsRes.value.ok) {
-            const settings = await settingsRes.value.json();
-            if (settings && typeof settings === 'object') state.settings = { ...state.settings, ...settings };
+        if (localSettings) {
+            try { state.settings = { ...state.settings, ...JSON.parse(localSettings) }; } catch (e) {}
         }
-        if (reviewsRes.status === 'fulfilled' && reviewsRes.value.ok) {
-            const reviews = await reviewsRes.value.json();
-            if (Array.isArray(reviews)) state.reviews = reviews;
+        if (localReviews) {
+            try { state.reviews = JSON.parse(localReviews); } catch (e) {}
         }
+
+        // Fetch static JSON files if any key is missing in localStorage
+        const fetchPromises = [];
+        const timestamp = Date.now();
+
+        if (!localPkgs) {
+            fetchPromises.push(
+                fetch(`data/packages.json?v=${timestamp}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        if (d && Array.isArray(d)) {
+                            state.packages = d;
+                            localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(d));
+                        }
+                    })
+            );
+        }
+
+        if (!localAlbums) {
+            fetchPromises.push(
+                fetch(`data/albums.json?v=${timestamp}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        if (d && Array.isArray(d)) {
+                            state.albums = d;
+                            localStorage.setItem(STORAGE_KEYS.ALBUMS, JSON.stringify(d));
+                        }
+                    })
+            );
+        }
+
+        if (!localSettings) {
+            fetchPromises.push(
+                fetch(`data/settings.json?v=${timestamp}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        if (d && typeof d === 'object') {
+                            state.settings = { ...state.settings, ...d };
+                            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
+                        }
+                    })
+            );
+        }
+
+        if (!localReviews) {
+            fetchPromises.push(
+                fetch(`data/reviews.json?v=${timestamp}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                        if (d && Array.isArray(d)) {
+                            state.reviews = d;
+                            localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(d));
+                        }
+                    })
+            );
+        }
+
+        if (fetchPromises.length > 0) {
+            await Promise.allSettled(fetchPromises);
+        }
+
         ensurePackagesHaveSlugsAndHeroProps();
     } catch (e) {
-        console.warn('⚠️ Cloud data fetch notice:', e);
+        console.warn('⚠️ Local storage initialization notice:', e);
     }
 }
 
 export function saveStore(renderCallback) {
+    try {
+        if (state.packages) localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(state.packages));
+        if (state.albums) localStorage.setItem(STORAGE_KEYS.ALBUMS, JSON.stringify(state.albums));
+        if (state.settings) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
+        if (state.reviews) localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(state.reviews));
+    } catch (e) {
+        console.error('Failed to write to localStorage:', e);
+    }
+
     if (renderCallback && typeof renderCallback === 'function') {
         renderCallback();
     }
 }
 
 export async function initStorage(handleRouteCallback) {
-    await fetchCloudData();
+    await fetchLocalOrStaticData();
     if (handleRouteCallback && typeof handleRouteCallback === 'function') {
         handleRouteCallback();
     }
 }
 
 export async function savePackageCloud(packageData) {
-    console.log('Uploading images...');
-    console.log('Updating JSON...');
-    console.log('Creating commit...');
-    console.log('Pushing...');
-
-    const res = await fetch('/api/savePackage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageData })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Sync Failed' }));
-        throw new Error(errJson.error || 'GitHub Commit Failed');
+    state.packages = state.packages || [];
+    const existingIdx = state.packages.findIndex(p => p.id === packageData.id);
+    if (existingIdx !== -1) {
+        state.packages[existingIdx] = packageData;
+    } else {
+        state.packages.unshift(packageData);
     }
 
-    const data = await res.json();
-    console.log('Refreshing cache...');
-    await fetchCloudData();
-    console.log('Done.');
-    return data;
+    saveStore();
+    return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
 
 export async function deletePackageCloud(packageId) {
-    console.log('Deleting package from GitHub JSON...');
-    const res = await fetch('/api/deletePackage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Delete Failed' }));
-        throw new Error(errJson.error || 'GitHub Delete Failed');
-    }
-
-    const data = await res.json();
-    await fetchCloudData();
-    return data;
+    state.packages = (state.packages || []).filter(p => p.id !== packageId);
+    saveStore();
+    return { success: true, packageId, message: 'Package Deleted Successfully' };
 }
 
 export async function saveAlbumCloud(albumData) {
-    console.log('Uploading album images...');
-    console.log('Updating album JSON...');
-    console.log('Creating commit...');
-    console.log('Pushing...');
-
-    const res = await fetch('/api/saveAlbum', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ albumData })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Album Sync Failed' }));
-        throw new Error(errJson.error || 'GitHub Album Sync Failed');
+    state.albums = state.albums || [];
+    const existingIdx = state.albums.findIndex(a => a.id === albumData.id);
+    if (existingIdx !== -1) {
+        state.albums[existingIdx] = albumData;
+    } else {
+        state.albums.unshift(albumData);
     }
 
-    const data = await res.json();
-    console.log('Refreshing cache...');
-    await fetchCloudData();
-    console.log('Done.');
-    return data;
+    saveStore();
+    return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
 
 export async function deleteAlbumCloud(albumId) {
-    console.log('Deleting album from GitHub JSON...');
-    const res = await fetch('/api/deleteAlbum', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ albumId })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Delete Failed' }));
-        throw new Error(errJson.error || 'GitHub Delete Failed');
-    }
-
-    const data = await res.json();
-    await fetchCloudData();
-    return data;
+    state.albums = (state.albums || []).filter(a => a.id !== albumId);
+    saveStore();
+    return { success: true, albumId, message: 'Album Deleted Successfully' };
 }
 
 export async function saveSettingsCloud(settingsData) {
-    console.log('Updating settings JSON...');
-    console.log('Creating commit...');
-    console.log('Pushing...');
-
-    const res = await fetch('/api/saveSettings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settingsData })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Settings Sync Failed' }));
-        throw new Error(errJson.error || 'GitHub Settings Sync Failed');
-    }
-
-    const data = await res.json();
-    console.log('Refreshing cache...');
-    await fetchCloudData();
-    console.log('Done.');
-    return data;
-}
-
-export async function verifyGithubSync() {
-    try {
-        const res = await fetch('/api/verifyGithub');
-        const data = await res.json();
-        return data;
-    } catch (err) {
-        return { success: false, configured: false, message: err.message || 'Network error' };
-    }
+    state.settings = { ...state.settings, ...settingsData };
+    saveStore();
+    return { success: true, settings: state.settings, message: 'Settings Saved Successfully' };
 }
