@@ -789,17 +789,17 @@ export function renderModals() {
                     <form onsubmit="window.handleAddPkgSubmit(event)" class="space-y-5 text-xs">
                         <div class="admin-form-group">
                             <label class="font-bold">Package Name *</label>
-                            <input type="text" id="np_name" value="${pkg.name || ''}" required placeholder="e.g. Complete Char Dham Yatra 2026" class="admin-form-input font-bold" />
+                            <input type="text" id="np_name" value="${pkg.name || ''}" oninput="window.syncPkgFormToState()" required placeholder="e.g. Complete Char Dham Yatra 2026" class="admin-form-input font-bold" />
                         </div>
                         
                         <div class="admin-form-grid admin-form-grid-2">
                             <div class="admin-form-group">
                                 <label class="font-bold">Price (₹) *</label>
-                                <input type="number" id="np_price" value="${pkg.price || ''}" required placeholder="32500" class="admin-form-input font-bold" />
+                                <input type="number" id="np_price" value="${pkg.price || ''}" oninput="window.syncPkgFormToState()" required placeholder="32500" class="admin-form-input font-bold" />
                             </div>
                             <div class="admin-form-group">
                                 <label class="font-bold">Category *</label>
-                                <select id="np_cat" class="admin-form-select">
+                                <select id="np_cat" onchange="window.syncPkgFormToState()" class="admin-form-select">
                                     <option value="religious" ${pkg.category==='religious'?'selected':''}>Religious</option>
                                     <option value="family" ${pkg.category==='family'?'selected':''}>Family</option>
                                     <option value="adventure" ${pkg.category==='adventure'?'selected':''}>Adventure</option>
@@ -810,11 +810,11 @@ export function renderModals() {
                         <div class="admin-form-grid admin-form-grid-2">
                             <div class="admin-form-group">
                                 <label class="font-bold">Duration *</label>
-                                <input type="text" id="np_dur" value="${pkg.duration || ''}" required placeholder="12 Days / 11 Nights" class="admin-form-input" />
+                                <input type="text" id="np_dur" value="${pkg.duration || ''}" oninput="window.syncPkgFormToState()" required placeholder="12 Days / 11 Nights" class="admin-form-input" />
                             </div>
                             <div class="admin-form-group">
                                 <label class="font-bold">Travel Dates *</label>
-                                <input type="text" id="np_dates" value="${pkg.dates || ''}" required placeholder="15 May - 26 May 2026" class="admin-form-input" />
+                                <input type="text" id="np_dates" value="${pkg.dates || ''}" oninput="window.syncPkgFormToState()" required placeholder="15 May - 26 May 2026" class="admin-form-input" />
                             </div>
                         </div>
 
@@ -822,27 +822,27 @@ export function renderModals() {
                             <label class="block font-bold text-navy-900">Package Display Badges & Visibility:</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <label class="flex items-center gap-2 cursor-pointer bg-saffron-50 text-saffron-900 font-bold px-3 py-2 rounded-xl border border-saffron-300">
-                                    <input type="checkbox" id="np_show_hero" ${pkg.showInHero !== false ? 'checked' : ''} />
+                                    <input type="checkbox" id="np_show_hero" onchange="window.syncPkgFormToState()" ${pkg.showInHero !== false ? 'checked' : ''} />
                                     <span>⭐ Show in Homepage Hero Slider</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer p-1.5">
-                                    <input type="checkbox" id="np_badge_featured" ${pkg.isFeatured ? 'checked' : ''} />
+                                    <input type="checkbox" id="np_badge_featured" onchange="window.syncPkgFormToState()" ${pkg.isFeatured ? 'checked' : ''} />
                                     <span>⭐ Featured Package</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer p-1.5">
-                                    <input type="checkbox" id="np_badge_trending" ${pkg.isTrending ? 'checked' : ''} />
+                                    <input type="checkbox" id="np_badge_trending" onchange="window.syncPkgFormToState()" ${pkg.isTrending ? 'checked' : ''} />
                                     <span>🔥 Trending Badge</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer p-1.5">
-                                    <input type="checkbox" id="np_badge_new" ${pkg.isNew ? 'checked' : ''} />
+                                    <input type="checkbox" id="np_badge_new" onchange="window.syncPkgFormToState()" ${pkg.isNew ? 'checked' : ''} />
                                     <span>✨ New Batch Badge</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer p-1.5">
-                                    <input type="checkbox" id="np_badge_soldout" ${pkg.isSoldOut ? 'checked' : ''} />
+                                    <input type="checkbox" id="np_badge_soldout" onchange="window.syncPkgFormToState()" ${pkg.isSoldOut ? 'checked' : ''} />
                                     <span>🛑 Sold Out Badge</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer p-1.5">
-                                    <input type="checkbox" id="np_badge_upcoming" ${pkg.isUpcoming ? 'checked' : ''} />
+                                    <input type="checkbox" id="np_badge_upcoming" onchange="window.syncPkgFormToState()" ${pkg.isUpcoming ? 'checked' : ''} />
                                     <span>⏳ Upcoming Badge</span>
                                 </label>
                             </div>
@@ -880,7 +880,7 @@ export function renderModals() {
 
                         <div class="admin-form-group">
                             <label class="font-bold">Short Description *</label>
-                            <textarea id="np_desc" rows="2" required placeholder="Brief tour overview..." class="admin-form-textarea">${pkg.shortDesc || ''}</textarea>
+                            <textarea id="np_desc" rows="2" oninput="window.syncPkgFormToState()" required placeholder="Brief tour overview..." class="admin-form-textarea">${pkg.shortDesc || ''}</textarea>
                         </div>
 
                         <!-- 📅 DYNAMIC DAY-WISE ITINERARY BUILDER -->
@@ -1272,36 +1272,39 @@ export function renderModals() {
 }
 
 window.openAddPkgModal = function() {
-    state.editingPkg = null;
-    state.tempPkgCoverImage = undefined;
-    state.tempPkgGallery = [];
-    state.tempItinerary = [
-        { day: 1, title: 'Day 1: Departure & Journey', description: 'Departure by AC Bus / Train. Overnight journey.', hotel: '', meal: 'Dinner Included', transport: 'AC Bus', icon: 'fa-bus', image: '', collapsed: false }
-    ];
-    uploaderState.previews['pkg_cover'] = undefined;
-    uploaderState.previews['pkg_gallery_uploader'] = undefined;
-
-    state.pkgEditorInitialSnapshot = {
-        isEdit: false,
-        pkgId: null,
-        name: '',
-        price: '',
-        category: 'religious',
-        duration: '',
-        dates: '',
-        shortDesc: '',
-        showInHero: true,
-        isFeatured: false,
-        isTrending: false,
-        isNew: false,
-        isSoldOut: false,
-        isUpcoming: false,
-        coverImage: '',
-        packageGallery: [],
-        itinerary: [
+    const draftRestored = window.restorePkgDraftFromLocalStorage();
+    if (!draftRestored || (state.editingPkg && state.editingPkg.id)) {
+        state.editingPkg = null;
+        state.tempPkgCoverImage = undefined;
+        state.tempPkgGallery = [];
+        state.tempItinerary = [
             { day: 1, title: 'Day 1: Departure & Journey', description: 'Departure by AC Bus / Train. Overnight journey.', hotel: '', meal: 'Dinner Included', transport: 'AC Bus', icon: 'fa-bus', image: '', collapsed: false }
-        ]
-    };
+        ];
+        uploaderState.previews['pkg_cover'] = undefined;
+        uploaderState.previews['pkg_gallery_uploader'] = undefined;
+
+        state.pkgEditorInitialSnapshot = {
+            isEdit: false,
+            pkgId: null,
+            name: '',
+            price: '',
+            category: 'religious',
+            duration: '',
+            dates: '',
+            shortDesc: '',
+            showInHero: true,
+            isFeatured: false,
+            isTrending: false,
+            isNew: false,
+            isSoldOut: false,
+            isUpcoming: false,
+            coverImage: '',
+            packageGallery: [],
+            itinerary: [
+                { day: 1, title: 'Day 1: Departure & Journey', description: 'Departure by AC Bus / Train. Overnight journey.', hotel: '', meal: 'Dinner Included', transport: 'AC Bus', icon: 'fa-bus', image: '', collapsed: false }
+            ]
+        };
+    }
 
     state.showAddPkgModal = true;
     state.showDiscardPkgConfirmModal = false;
@@ -1313,51 +1316,56 @@ window.openAddPkgModal = function() {
 };
 
 window.openEditPkgModal = function(id) {
-    const origPkg = state.packages.find(p => p.id === id);
-    state.editingPkg = origPkg ? JSON.parse(JSON.stringify(origPkg)) : null;
-    state.tempPkgCoverImage = state.editingPkg ? state.editingPkg.coverImage : undefined;
-    state.tempPkgGallery = state.editingPkg ? [...(state.editingPkg.packageGallery || [])] : [];
-    
-    if (state.editingPkg && Array.isArray(state.editingPkg.itinerary) && state.editingPkg.itinerary.length > 0) {
-        state.tempItinerary = state.editingPkg.itinerary.map((item, idx) => ({
-            day: idx + 1,
-            title: item.title || `Day ${idx + 1}`,
-            description: item.description || item.desc || '',
-            hotel: item.hotel || '',
-            meal: item.meal || '',
-            transport: item.transport || '',
-            icon: item.icon || 'fa-route',
-            image: item.image || '',
-            collapsed: false
-        }));
-    } else {
-        state.tempItinerary = [
-            { day: 1, title: 'Day 1: Departure & Journey', description: 'Departure by AC Bus / Train. Overnight journey.', hotel: '', meal: 'Dinner Included', transport: 'AC Bus', icon: 'fa-bus', image: '', collapsed: false }
-        ];
+    const draftRestored = window.restorePkgDraftFromLocalStorage();
+    const isMatchingDraft = draftRestored && state.editingPkg && state.editingPkg.id === id;
+
+    if (!isMatchingDraft) {
+        const origPkg = state.packages.find(p => p.id === id);
+        state.editingPkg = origPkg ? JSON.parse(JSON.stringify(origPkg)) : null;
+        state.tempPkgCoverImage = state.editingPkg ? state.editingPkg.coverImage : undefined;
+        state.tempPkgGallery = state.editingPkg ? [...(state.editingPkg.packageGallery || [])] : [];
+        
+        if (state.editingPkg && Array.isArray(state.editingPkg.itinerary) && state.editingPkg.itinerary.length > 0) {
+            state.tempItinerary = state.editingPkg.itinerary.map((item, idx) => ({
+                day: idx + 1,
+                title: item.title || `Day ${idx + 1}`,
+                description: item.description || item.desc || '',
+                hotel: item.hotel || '',
+                meal: item.meal || '',
+                transport: item.transport || '',
+                icon: item.icon || 'fa-route',
+                image: item.image || '',
+                collapsed: false
+            }));
+        } else {
+            state.tempItinerary = [
+                { day: 1, title: 'Day 1: Departure & Journey', description: 'Departure by AC Bus / Train. Overnight journey.', hotel: '', meal: 'Dinner Included', transport: 'AC Bus', icon: 'fa-bus', image: '', collapsed: false }
+            ];
+        }
+
+        uploaderState.previews['pkg_cover'] = undefined;
+        uploaderState.previews['pkg_gallery_uploader'] = undefined;
+
+        state.pkgEditorInitialSnapshot = {
+            isEdit: true,
+            pkgId: id,
+            name: origPkg ? (origPkg.name || '') : '',
+            price: origPkg && origPkg.price !== undefined ? origPkg.price : '',
+            category: origPkg ? (origPkg.category || 'religious') : 'religious',
+            duration: origPkg ? (origPkg.duration || '') : '',
+            dates: origPkg ? (origPkg.dates || '') : '',
+            shortDesc: origPkg ? (origPkg.shortDesc || '') : '',
+            showInHero: origPkg ? (origPkg.showInHero !== false) : true,
+            isFeatured: origPkg ? Boolean(origPkg.isFeatured) : false,
+            isTrending: origPkg ? Boolean(origPkg.isTrending) : false,
+            isNew: origPkg ? Boolean(origPkg.isNew) : false,
+            isSoldOut: origPkg ? Boolean(origPkg.isSoldOut) : false,
+            isUpcoming: origPkg ? Boolean(origPkg.isUpcoming) : false,
+            coverImage: origPkg ? (origPkg.coverImage || '') : '',
+            packageGallery: origPkg ? [...(origPkg.packageGallery || [])] : [],
+            itinerary: state.tempItinerary.map(item => ({ ...item }))
+        };
     }
-
-    uploaderState.previews['pkg_cover'] = undefined;
-    uploaderState.previews['pkg_gallery_uploader'] = undefined;
-
-    state.pkgEditorInitialSnapshot = {
-        isEdit: true,
-        pkgId: id,
-        name: origPkg ? (origPkg.name || '') : '',
-        price: origPkg && origPkg.price !== undefined ? origPkg.price : '',
-        category: origPkg ? (origPkg.category || 'religious') : 'religious',
-        duration: origPkg ? (origPkg.duration || '') : '',
-        dates: origPkg ? (origPkg.dates || '') : '',
-        shortDesc: origPkg ? (origPkg.shortDesc || '') : '',
-        showInHero: origPkg ? (origPkg.showInHero !== false) : true,
-        isFeatured: origPkg ? Boolean(origPkg.isFeatured) : false,
-        isTrending: origPkg ? Boolean(origPkg.isTrending) : false,
-        isNew: origPkg ? Boolean(origPkg.isNew) : false,
-        isSoldOut: origPkg ? Boolean(origPkg.isSoldOut) : false,
-        isUpcoming: origPkg ? Boolean(origPkg.isUpcoming) : false,
-        coverImage: origPkg ? (origPkg.coverImage || '') : '',
-        packageGallery: origPkg ? [...(origPkg.packageGallery || [])] : [],
-        itinerary: state.tempItinerary.map(item => ({ ...item }))
-    };
 
     state.showAddPkgModal = true;
     state.showDiscardPkgConfirmModal = false;
@@ -1368,7 +1376,95 @@ window.openEditPkgModal = function(id) {
     if (window.renderApp) window.renderApp();
 };
 
+window.savePkgDraftToLocalStorage = function() {
+    try {
+        if (state.showAddPkgModal) {
+            const draft = {
+                editingPkg: state.editingPkg,
+                tempPkgCoverImage: state.tempPkgCoverImage,
+                tempPkgGallery: state.tempPkgGallery || [],
+                tempItinerary: state.tempItinerary || [],
+                pkgEditorInitialSnapshot: state.pkgEditorInitialSnapshot
+            };
+            localStorage.setItem('ck_pkg_draft_v1', JSON.stringify(draft));
+        }
+    } catch (e) {}
+};
+
+window.clearPkgDraftFromLocalStorage = function() {
+    try {
+        localStorage.removeItem('ck_pkg_draft_v1');
+    } catch (e) {}
+};
+
+window.restorePkgDraftFromLocalStorage = function() {
+    try {
+        const raw = localStorage.getItem('ck_pkg_draft_v1');
+        if (raw) {
+            const draft = JSON.parse(raw);
+            if (draft && (draft.tempItinerary || draft.editingPkg)) {
+                state.editingPkg = draft.editingPkg;
+                state.tempPkgCoverImage = draft.tempPkgCoverImage;
+                state.tempPkgGallery = draft.tempPkgGallery || [];
+                state.tempItinerary = draft.tempItinerary || [];
+                if (draft.pkgEditorInitialSnapshot) state.pkgEditorInitialSnapshot = draft.pkgEditorInitialSnapshot;
+                return true;
+            }
+        }
+    } catch (e) {}
+    return false;
+};
+
+window.syncPkgFormToState = function() {
+    if (!state.showAddPkgModal) return;
+    const current = getPkgEditorCurrentData();
+
+    if (!state.editingPkg) {
+        state.editingPkg = {
+            id: null,
+            name: current.name,
+            price: current.price,
+            category: current.category,
+            duration: current.duration,
+            dates: current.dates,
+            shortDesc: current.shortDesc,
+            showInHero: current.showInHero,
+            isFeatured: current.isFeatured,
+            isTrending: current.isTrending,
+            isNew: current.isNew,
+            isSoldOut: current.isSoldOut,
+            isUpcoming: current.isUpcoming,
+            coverImage: current.coverImage,
+            packageGallery: current.packageGallery,
+            itinerary: current.itinerary
+        };
+    } else {
+        state.editingPkg.name = current.name;
+        state.editingPkg.price = current.price;
+        state.editingPkg.category = current.category;
+        state.editingPkg.duration = current.duration;
+        state.editingPkg.dates = current.dates;
+        state.editingPkg.shortDesc = current.shortDesc;
+        state.editingPkg.showInHero = current.showInHero;
+        state.editingPkg.isFeatured = current.isFeatured;
+        state.editingPkg.isTrending = current.isTrending;
+        state.editingPkg.isNew = current.isNew;
+        state.editingPkg.isSoldOut = current.isSoldOut;
+        state.editingPkg.isUpcoming = current.isUpcoming;
+        state.editingPkg.coverImage = current.coverImage;
+        state.editingPkg.packageGallery = current.packageGallery;
+        state.editingPkg.itinerary = current.itinerary;
+    }
+
+    state.tempPkgCoverImage = current.coverImage;
+    state.tempPkgGallery = current.packageGallery;
+    state.tempItinerary = current.itinerary;
+
+    window.savePkgDraftToLocalStorage();
+};
+
 window.addItineraryDay = function() {
+    window.syncPkgFormToState();
     state.tempItinerary = state.tempItinerary || [];
     const nextDayNum = state.tempItinerary.length + 1;
     state.tempItinerary.push({
@@ -1382,20 +1478,26 @@ window.addItineraryDay = function() {
         image: '',
         collapsed: false
     });
+    if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
+    window.savePkgDraftToLocalStorage();
     if (window.renderApp) window.renderApp();
 };
 
 window.deleteItineraryDay = function(idx) {
+    window.syncPkgFormToState();
     if (state.tempItinerary && state.tempItinerary.length > idx) {
         state.tempItinerary.splice(idx, 1);
         state.tempItinerary.forEach((item, dIdx) => {
             item.day = dIdx + 1;
         });
+        if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
+        window.savePkgDraftToLocalStorage();
         if (window.renderApp) window.renderApp();
     }
 };
 
 window.moveItineraryDay = function(idx, direction) {
+    window.syncPkgFormToState();
     if (!state.tempItinerary) return;
     const newIdx = idx + direction;
     if (newIdx >= 0 && newIdx < state.tempItinerary.length) {
@@ -1405,11 +1507,14 @@ window.moveItineraryDay = function(idx, direction) {
         state.tempItinerary.forEach((item, dIdx) => {
             item.day = dIdx + 1;
         });
+        if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
+        window.savePkgDraftToLocalStorage();
         if (window.renderApp) window.renderApp();
     }
 };
 
 window.duplicateItineraryDay = function(idx) {
+    window.syncPkgFormToState();
     if (!state.tempItinerary || !state.tempItinerary[idx]) return;
     const clone = JSON.parse(JSON.stringify(state.tempItinerary[idx]));
     clone.title = clone.title + ' (Copy)';
@@ -1417,12 +1522,16 @@ window.duplicateItineraryDay = function(idx) {
     state.tempItinerary.forEach((item, dIdx) => {
         item.day = dIdx + 1;
     });
+    if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
+    window.savePkgDraftToLocalStorage();
     if (window.renderApp) window.renderApp();
 };
 
 window.toggleCollapseItineraryDay = function(idx) {
+    window.syncPkgFormToState();
     if (state.tempItinerary && state.tempItinerary[idx]) {
         state.tempItinerary[idx].collapsed = !state.tempItinerary[idx].collapsed;
+        window.savePkgDraftToLocalStorage();
         if (window.renderApp) window.renderApp();
     }
 };
@@ -1430,7 +1539,10 @@ window.toggleCollapseItineraryDay = function(idx) {
 window.updateItineraryField = function(idx, field, value) {
     if (state.tempItinerary && state.tempItinerary[idx]) {
         state.tempItinerary[idx][field] = value;
-        if (window.renderApp) window.renderApp();
+        if (state.editingPkg && state.editingPkg.itinerary && state.editingPkg.itinerary[idx]) {
+            state.editingPkg.itinerary[idx][field] = value;
+        }
+        window.savePkgDraftToLocalStorage();
     }
 };
 
@@ -1445,6 +1557,7 @@ window.handleItineraryDragStart = function(e, idx) {
 
 window.handleItineraryDrop = function(e, targetIdx) {
     e.preventDefault();
+    window.syncPkgFormToState();
     if (draggedItineraryIdx === null || draggedItineraryIdx === targetIdx) return;
     if (!state.tempItinerary) return;
 
@@ -1453,8 +1566,10 @@ window.handleItineraryDrop = function(e, targetIdx) {
     state.tempItinerary.forEach((item, dIdx) => {
         item.day = dIdx + 1;
     });
+    if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
 
     draggedItineraryIdx = null;
+    window.savePkgDraftToLocalStorage();
     if (window.renderApp) window.renderApp();
 };
 
@@ -1628,6 +1743,7 @@ window.handleAddPkgSubmit = function(e) {
     state.pkgEditorInitialSnapshot = null;
     uploaderState.previews['pkg_cover'] = undefined;
     uploaderState.previews['pkg_gallery_uploader'] = undefined;
+    window.clearPkgDraftFromLocalStorage();
     saveStore(window.renderApp);
 };
 
@@ -1775,56 +1891,9 @@ window.confirmDiscardPkgChanges = function() {
     state.pkgEditorInitialSnapshot = null;
     uploaderState.previews['pkg_cover'] = undefined;
     uploaderState.previews['pkg_gallery_uploader'] = undefined;
-    try { localStorage.removeItem('ck_pkg_draft_v1'); } catch (e) {}
+    window.clearPkgDraftFromLocalStorage();
     if (window.renderApp) window.renderApp();
 };
-
-window.autoSavePkgDraft = function() {
-    if (!state.showAddPkgModal) return;
-    try {
-        const current = getPkgEditorCurrentData();
-        if (window.hasPkgEditorUnsavedChanges && window.hasPkgEditorUnsavedChanges()) {
-            localStorage.setItem('ck_pkg_draft_v1', JSON.stringify({
-                data: current,
-                editingId: state.editingPkg ? state.editingPkg.id : null,
-                timestamp: Date.now()
-            }));
-        }
-    } catch (e) {}
-};
-
-window.restorePkgDraft = function() {
-    try {
-        const raw = localStorage.getItem('ck_pkg_draft_v1');
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.data) {
-            const d = parsed.data;
-            if (d.coverImage) state.tempPkgCoverImage = d.coverImage;
-            if (Array.isArray(d.packageGallery)) state.tempPkgGallery = d.packageGallery;
-            if (Array.isArray(d.itinerary)) state.tempItinerary = d.itinerary;
-            if (window.showToast) window.showToast('✅ Restored auto-saved draft!', 'success');
-            if (window.renderApp) window.renderApp();
-        }
-    } catch (e) {}
-};
-
-window.clearPkgDraft = function() {
-    try {
-        localStorage.removeItem('ck_pkg_draft_v1');
-        if (window.showToast) window.showToast('Draft dismissed', 'info');
-        if (window.renderApp) window.renderApp();
-    } catch (e) {}
-};
-
-if (!window._pkgAutoSaveIntervalStarted) {
-    window._pkgAutoSaveIntervalStarted = true;
-    setInterval(() => {
-        if (state.showAddPkgModal && window.autoSavePkgDraft) {
-            window.autoSavePkgDraft();
-        }
-    }, 5000);
-}
 
 if (!window._pkgEditorListenersAttached) {
     window._pkgEditorListenersAttached = true;
@@ -1853,9 +1922,10 @@ if (!window._pkgEditorListenersAttached) {
     window.addEventListener('beforeunload', (e) => {
         if ((state.showAddPkgModal && window.hasPkgEditorUnsavedChanges && window.hasPkgEditorUnsavedChanges()) ||
             (state.showAddAlbumModal && window.hasAlbumEditorUnsavedChanges && window.hasAlbumEditorUnsavedChanges())) {
+            const warningMsg = '⚠️ You have unsaved changes. Leave anyway?';
             e.preventDefault();
-            e.returnValue = 'You have unsaved changes. Are you sure you want to leave this page?';
-            return e.returnValue;
+            e.returnValue = warningMsg;
+            return warningMsg;
         }
     });
 

@@ -1,8 +1,6 @@
-/* चंद्रकैलाश Tours & Travels - Persistent Storage Service (Supabase Cloud + IndexedDB + LocalStorage) */
+/* चंद्रकैलाश Tours & Travels - Persistent Storage Service (IndexedDB + LocalStorage) */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
-import { fetchStateFromSupabase, saveAllToSupabase, isSupabaseConfigured } from './supabase.js';
-import { showToast } from '../utils/toast.js';
 
 const DB_NAME = 'ChandrakailashToursDB';
 const DB_VERSION = 2;
@@ -49,8 +47,7 @@ export async function loadFromIndexedDB(key) {
     }
 }
 
-export function saveStore(renderCallback, showToastNotice = true) {
-    // 1. Save locally for instant UI responsiveness & offline fallback
+export function saveStore(renderCallback) {
     try {
         localStorage.setItem('ck_set_v21', JSON.stringify(state.settings));
         localStorage.setItem('ck_pkgs_v21', JSON.stringify(state.packages));
@@ -59,9 +56,8 @@ export function saveStore(renderCallback, showToastNotice = true) {
         localStorage.setItem('ck_bk_v21', JSON.stringify(state.bookings));
         localStorage.setItem('ck_i18n_v21', JSON.stringify(state.translations));
     } catch (err) {
-        console.warn('LocalStorage save limit reached, state safely preserved in IndexedDB & Supabase.', err);
+        console.warn('LocalStorage save limit reached, state safely preserved in IndexedDB.', err);
     }
-
     saveToIndexedDB('ck_full_state_v21', {
         settings: state.settings,
         packages: state.packages,
@@ -70,38 +66,12 @@ export function saveStore(renderCallback, showToastNotice = true) {
         bookings: state.bookings,
         translations: state.translations
     });
-
     if (renderCallback && typeof renderCallback === 'function') {
         renderCallback();
     }
-
-    // 2. Push to Supabase Cloud Central Database
-    if (isSupabaseConfigured()) {
-        saveAllToSupabase().then(success => {
-            if (success && showToastNotice) {
-                showToast('✅ Saved & synced to Supabase central database!', 'success');
-            } else if (!success && showToastNotice) {
-                showToast('⚠️ Saved locally (Supabase sync failed or table missing)', 'warning');
-            }
-        });
-    } else if (showToastNotice) {
-        showToast('💾 Saved locally! (Configure Supabase in Settings for cross-device sync)', 'info');
-    }
 }
 
-export async function initStorage(handleRouteCallback) {
-    // 1. Try loading from Supabase Cloud Database first (every device reads same DB)
-    const loadedFromCloud = await fetchStateFromSupabase();
-
-    if (loadedFromCloud) {
-        console.log('✅ Loaded latest CMS data from Supabase Central Database.');
-        if (handleRouteCallback && typeof handleRouteCallback === 'function') {
-            handleRouteCallback();
-        }
-        return;
-    }
-
-    // 2. Fallback to IndexedDB / LocalStorage if offline or Supabase not connected
+export function initStorage(handleRouteCallback) {
     loadFromIndexedDB('ck_full_state_v21').then((savedState) => {
         if (savedState) {
             if (savedState.settings) state.settings = savedState.settings;
@@ -111,9 +81,9 @@ export async function initStorage(handleRouteCallback) {
             if (savedState.bookings) state.bookings = savedState.bookings;
             if (savedState.translations) state.translations = savedState.translations;
             ensurePackagesHaveSlugsAndHeroProps();
-        }
-        if (handleRouteCallback && typeof handleRouteCallback === 'function') {
-            handleRouteCallback();
+            if (handleRouteCallback && typeof handleRouteCallback === 'function') {
+                handleRouteCallback();
+            }
         }
     });
 }
