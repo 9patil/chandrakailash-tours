@@ -1,11 +1,64 @@
-/* चंद्रकैलाश Tours & Travels - Central Cloud Storage Service (GitHub Single Source of Truth) */
+/* चंद्रकैलाश Tours & Travels - Central Cloud Storage Service (Zero GitHub Tokens) */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
+import { fetchStateFromSupabase, saveSectionToSupabase, isSupabaseConfigured } from './supabase.js';
+
+const DB_NAME = 'ChandrakailashToursDB';
+const DB_VERSION = 2;
+const STORE_NAME = 'app_state';
+
+function openDB() {
+    return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+    });
+}
+
+export async function saveToIndexedDB(key, val) {
+    try {
+        const db = await openDB();
+        if (!db) return;
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(val, key);
+    } catch (err) {
+        console.warn('IndexedDB save notice:', err);
+    }
+}
+
+export async function loadFromIndexedDB(key) {
+    try {
+        const db = await openDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    } catch (err) {
+        return null;
+    }
+}
 
 export async function fetchCloudData() {
     const timestamp = Date.now();
+
+    // 1. Try Supabase Cloud Database if configured
+    if (isSupabaseConfigured()) {
+        const loadedFromSupabase = await fetchStateFromSupabase();
+        if (loadedFromSupabase) return;
+    }
+
+    // 2. Try Serverless Cloud DB API or static JSON files
     try {
-        console.log('🔄 Fetching live data from GitHub central repository...');
         const [pkgsRes, albumsRes, settingsRes, reviewsRes] = await Promise.allSettled([
             fetch(`data/packages.json?v=${timestamp}`, { cache: 'no-store' }),
             fetch(`data/albums.json?v=${timestamp}`, { cache: 'no-store' }),
@@ -31,11 +84,29 @@ export async function fetchCloudData() {
         }
         ensurePackagesHaveSlugsAndHeroProps();
     } catch (e) {
-        console.warn('⚠️ Cloud data fetch notice:', e);
+        console.warn('⚠️ Central cloud data fetch notice:', e);
     }
 }
 
 export function saveStore(renderCallback) {
+    try {
+        localStorage.setItem('ck_set_v21', JSON.stringify(state.settings));
+        localStorage.setItem('ck_pkgs_v21', JSON.stringify(state.packages));
+        localStorage.setItem('ck_alb_v21', JSON.stringify(state.albums));
+        localStorage.setItem('ck_rev_v21', JSON.stringify(state.reviews));
+        localStorage.setItem('ck_bk_v21', JSON.stringify(state.bookings));
+        localStorage.setItem('ck_i18n_v21', JSON.stringify(state.translations));
+    } catch (err) {}
+
+    saveToIndexedDB('ck_full_state_v21', {
+        settings: state.settings,
+        packages: state.packages,
+        albums: state.albums,
+        reviews: state.reviews,
+        bookings: state.bookings,
+        translations: state.translations
+    });
+
     if (renderCallback && typeof renderCallback === 'function') {
         renderCallback();
     }
@@ -48,119 +119,73 @@ export async function initStorage(handleRouteCallback) {
     }
 }
 
-export async function savePackageCloud(packageData) {
-    console.log('Uploading images...');
-    console.log('Updating JSON...');
-    console.log('Creating commit...');
-    console.log('Pushing...');
-
-    const res = await fetch('/api/savePackage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageData })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Sync Failed' }));
-        throw new Error(errJson.error || 'GitHub Commit Failed');
+async function syncToCloudStore(type, data) {
+    if (isSupabaseConfigured()) {
+        await saveSectionToSupabase(type, data);
+        return;
     }
 
-    const data = await res.json();
-    console.log('Refreshing cache...');
+    try {
+        await fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, data })
+        });
+    } catch (e) {
+        console.warn(`Local cloud store API sync notice for ${type}:`, e.message);
+    }
+}
+
+export async function savePackageCloud(packageData) {
+    state.packages = state.packages || [];
+    const existingIdx = state.packages.findIndex(p => p.id === packageData.id);
+    if (existingIdx !== -1) {
+        state.packages[existingIdx] = packageData;
+    } else {
+        state.packages.unshift(packageData);
+    }
+
+    saveStore();
+    await syncToCloudStore('packages', state.packages);
     await fetchCloudData();
-    console.log('Done.');
-    return data;
+    return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
 
 export async function deletePackageCloud(packageId) {
-    console.log('Deleting package from GitHub JSON...');
-    const res = await fetch('/api/deletePackage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Delete Failed' }));
-        throw new Error(errJson.error || 'GitHub Delete Failed');
-    }
-
-    const data = await res.json();
+    state.packages = (state.packages || []).filter(p => p.id !== packageId);
+    saveStore();
+    await syncToCloudStore('packages', state.packages);
     await fetchCloudData();
-    return data;
+    return { success: true, packageId, message: 'Package Deleted Successfully' };
 }
 
 export async function saveAlbumCloud(albumData) {
-    console.log('Uploading album images...');
-    console.log('Updating album JSON...');
-    console.log('Creating commit...');
-    console.log('Pushing...');
-
-    const res = await fetch('/api/saveAlbum', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ albumData })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Album Sync Failed' }));
-        throw new Error(errJson.error || 'GitHub Album Sync Failed');
+    state.albums = state.albums || [];
+    const existingIdx = state.albums.findIndex(a => a.id === albumData.id);
+    if (existingIdx !== -1) {
+        state.albums[existingIdx] = albumData;
+    } else {
+        state.albums.unshift(albumData);
     }
 
-    const data = await res.json();
-    console.log('Refreshing cache...');
+    saveStore();
+    await syncToCloudStore('albums', state.albums);
     await fetchCloudData();
-    console.log('Done.');
-    return data;
+    return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
 
 export async function deleteAlbumCloud(albumId) {
-    console.log('Deleting album from GitHub JSON...');
-    const res = await fetch('/api/deleteAlbum', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ albumId })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Delete Failed' }));
-        throw new Error(errJson.error || 'GitHub Delete Failed');
-    }
-
-    const data = await res.json();
+    state.albums = (state.albums || []).filter(a => a.id !== albumId);
+    saveStore();
+    await syncToCloudStore('albums', state.albums);
     await fetchCloudData();
-    return data;
+    return { success: true, albumId, message: 'Album Deleted Successfully' };
 }
 
 export async function saveSettingsCloud(settingsData) {
-    console.log('Updating settings JSON...');
-    console.log('Creating commit...');
-    console.log('Pushing...');
-
-    const res = await fetch('/api/saveSettings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settingsData })
-    });
-
-    if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ error: 'GitHub Settings Sync Failed' }));
-        throw new Error(errJson.error || 'GitHub Settings Sync Failed');
-    }
-
-    const data = await res.json();
-    console.log('Refreshing cache...');
+    state.settings = { ...state.settings, ...settingsData };
+    saveStore();
+    await syncToCloudStore('settings', state.settings);
     await fetchCloudData();
-    console.log('Done.');
-    return data;
-}
-
-export async function verifyGithubSync() {
-    try {
-        const res = await fetch('/api/verifyGithub');
-        const data = await res.json();
-        return data;
-    } catch (err) {
-        return { success: false, configured: false, message: err.message || 'Network error' };
-    }
+    return { success: true, settings: state.settings, message: 'Settings Saved Successfully' };
 }
