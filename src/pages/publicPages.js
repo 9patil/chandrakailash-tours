@@ -1706,14 +1706,17 @@ window.handleAddPkgSubmit = async function(e) {
         const isSoldOut = document.getElementById('np_badge_soldout') ? document.getElementById('np_badge_soldout').checked : false;
         const isUpcoming = document.getElementById('np_badge_upcoming') ? document.getElementById('np_badge_upcoming').checked : false;
 
-        let coverImg = 'images/himalayan_yatra.jpg';
+        let coverImg = '';
         if (state.tempPkgCoverImage !== undefined && state.tempPkgCoverImage !== '') {
             coverImg = state.tempPkgCoverImage;
         } else if (state.editingPkg && state.editingPkg.coverImage) {
             coverImg = state.editingPkg.coverImage;
+        } else {
+            coverImg = 'images/himalayan_yatra.jpg';
         }
 
-        console.log('📸 Uploading Cover:', coverImg ? (coverImg.substring(0, 30) + '...') : 'Default');
+        console.log('Image URL generated:', coverImg ? (coverImg.substring(0, 40) + '...') : 'None');
+        console.log('Package updated:', name);
         console.log('🖼️ Uploading Gallery:', (state.tempPkgGallery || []).length, 'images');
 
         const packageGallery = state.tempPkgGallery || [];

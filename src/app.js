@@ -344,8 +344,11 @@ async function processUploaderFiles(id, files, allowMultiple) {
             uploaderState.progress[id].status = 'Compressing & Optimizing Image (WebP)...';
             render();
 
-            console.log('📸 Uploading Cover:', file.name);
+            console.log('Image selected:', file.name);
+            console.log('Uploading image...');
             const res = await compressImageFile(file);
+            console.log('Image uploaded.');
+            console.log('Image URL generated:', res.dataUrl ? (res.dataUrl.substring(0, 30) + '...') : 'None');
 
             uploaderState.progress[id].percent = 100;
             uploaderState.progress[id].status = `Optimized! (${(res.originalSize/1024).toFixed(0)}KB ➔ ${(res.compressedSize/1024).toFixed(0)}KB, -${res.savingsPercent}%)`;
