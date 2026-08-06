@@ -30,17 +30,6 @@ export function renderAdminOverview() {
             </div>
 
             <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-                <div class="flex justify-between items-center flex-wrap gap-2">
-                    <h4 class="font-bold text-navy-900 text-base">☁️ Multi-Device Cloud Database Sync</h4>
-                    <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">🟢 Active (Zero Tokens Required)</span>
-                </div>
-                <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1.5">
-                    <div class="font-bold text-sm text-emerald-950">✅ Real-Time Global Data Sync Enabled</div>
-                    <div>All additions, edits, gallery uploads, hero slider updates, and settings sync across Laptops, Phones, and Tablets automatically.</div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
                 <h4 class="font-bold text-navy-900 text-base">⚡ Quick System Status</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                     <div class="p-3.5 bg-slate-50 rounded-xl border">
