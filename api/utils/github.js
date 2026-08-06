@@ -122,6 +122,9 @@ export async function commitFileToGithub(path, content, message, isBase64 = fals
 
     if (!response.ok) {
         const errText = await response.text();
+        if (response.status === 403) {
+            throw new Error(`GitHub Permission Error (403): Your GITHUB_TOKEN does not have write access to repository '${config.repo}'. Please edit your token on GitHub ➔ set 'Repository Permissions' ➔ 'Contents' to 'Read and write'.`);
+        }
         throw new Error(`GitHub Commit Failed (${response.status}): ${errText}`);
     }
 
