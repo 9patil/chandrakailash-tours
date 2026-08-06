@@ -12,7 +12,8 @@ import {
     renderContactSettings,
     renderSEOSettings,
     renderTranslationsSettings,
-    renderSecuritySettings
+    renderSecuritySettings,
+    renderSupabaseSettings
 } from '../components/admin/settings/settingsManagers.js';
 
 export function renderAdminView() {
@@ -21,6 +22,7 @@ export function renderAdminView() {
 
     const navTabs = [
         { id: 'overview', label: '📊 System Overview', icon: 'fa-chart-pie' },
+        { id: 'database', label: '⚡ Supabase Cloud Sync', icon: 'fa-database' },
         { id: 'hero', label: '🏞️ Hero Slider CMS', icon: 'fa-sliders' },
         { id: 'branding', label: '🏷️ Branding & Typography', icon: 'fa-palette' },
         { id: 'packages', label: '📦 Tour Packages CMS', icon: 'fa-suitcase' },
@@ -104,6 +106,7 @@ export function renderAdminView() {
             <!-- TAB CONTENT CONTAINER -->
             <div class="w-full">
                 ${currentTab === 'overview' ? renderAdminOverview() : ''}
+                ${currentTab === 'database' ? renderSupabaseSettings() : ''}
                 ${currentTab === 'hero' ? renderHeroManager() : ''}
                 ${currentTab === 'branding' ? renderBrandingManager() : ''}
                 ${currentTab === 'packages' ? renderPackagesManager() : ''}

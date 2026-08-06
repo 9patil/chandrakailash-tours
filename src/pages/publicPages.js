@@ -1775,8 +1775,56 @@ window.confirmDiscardPkgChanges = function() {
     state.pkgEditorInitialSnapshot = null;
     uploaderState.previews['pkg_cover'] = undefined;
     uploaderState.previews['pkg_gallery_uploader'] = undefined;
+    try { localStorage.removeItem('ck_pkg_draft_v1'); } catch (e) {}
     if (window.renderApp) window.renderApp();
 };
+
+window.autoSavePkgDraft = function() {
+    if (!state.showAddPkgModal) return;
+    try {
+        const current = getPkgEditorCurrentData();
+        if (window.hasPkgEditorUnsavedChanges && window.hasPkgEditorUnsavedChanges()) {
+            localStorage.setItem('ck_pkg_draft_v1', JSON.stringify({
+                data: current,
+                editingId: state.editingPkg ? state.editingPkg.id : null,
+                timestamp: Date.now()
+            }));
+        }
+    } catch (e) {}
+};
+
+window.restorePkgDraft = function() {
+    try {
+        const raw = localStorage.getItem('ck_pkg_draft_v1');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.data) {
+            const d = parsed.data;
+            if (d.coverImage) state.tempPkgCoverImage = d.coverImage;
+            if (Array.isArray(d.packageGallery)) state.tempPkgGallery = d.packageGallery;
+            if (Array.isArray(d.itinerary)) state.tempItinerary = d.itinerary;
+            if (window.showToast) window.showToast('✅ Restored auto-saved draft!', 'success');
+            if (window.renderApp) window.renderApp();
+        }
+    } catch (e) {}
+};
+
+window.clearPkgDraft = function() {
+    try {
+        localStorage.removeItem('ck_pkg_draft_v1');
+        if (window.showToast) window.showToast('Draft dismissed', 'info');
+        if (window.renderApp) window.renderApp();
+    } catch (e) {}
+};
+
+if (!window._pkgAutoSaveIntervalStarted) {
+    window._pkgAutoSaveIntervalStarted = true;
+    setInterval(() => {
+        if (state.showAddPkgModal && window.autoSavePkgDraft) {
+            window.autoSavePkgDraft();
+        }
+    }, 5000);
+}
 
 if (!window._pkgEditorListenersAttached) {
     window._pkgEditorListenersAttached = true;

@@ -347,6 +347,115 @@ export function renderSecuritySettings() {
     `;
 }
 
+/* 6. SUPABASE CENTRAL DATABASE SETTINGS */
+export function renderSupabaseSettings() {
+    const isConfigured = Boolean(state.settings.supabaseUrl && state.settings.supabaseKey && !state.settings.supabaseUrl.includes('demo_key'));
+
+    return `
+        <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border space-y-5 max-w-2xl mx-auto admin-container">
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-xl font-bold text-navy-900 flex items-center gap-2">
+                        <span>⚡ Supabase Central Database CMS</span>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full font-extrabold ${isConfigured ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">
+                            ${isConfigured ? '🟢 Connected' : '🟡 Local Storage Mode'}
+                        </span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Sync all tour packages, gallery albums, reviews, and settings across all devices automatically.</p>
+                </div>
+            </div>
+
+            <form onsubmit="window.handleSaveSupabaseSettings(event)" class="space-y-4 text-xs">
+                <div class="admin-form-group">
+                    <label class="font-bold text-slate-700">Supabase Project URL</label>
+                    <input 
+                        type="url" 
+                        id="sb_url" 
+                        value="${state.settings.supabaseUrl || ''}" 
+                        placeholder="https://your-project-id.supabase.co" 
+                        class="admin-form-input font-mono text-xs" 
+                    />
+                </div>
+
+                <div class="admin-form-group">
+                    <label class="font-bold text-slate-700">Supabase Anon Public API Key</label>
+                    <input 
+                        type="password" 
+                        id="sb_key" 
+                        value="${state.settings.supabaseKey || ''}" 
+                        placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                        class="admin-form-input font-mono text-xs" 
+                    />
+                </div>
+
+                <div class="flex flex-wrap gap-2 pt-2">
+                    <button type="submit" class="btn-touch-48 bg-saffron-500 hover:bg-saffron-600 text-white font-bold shadow rounded-xl">
+                        Save Supabase Keys
+                    </button>
+
+                    <button type="button" onclick="window.testSupabaseConnectionUI()" class="btn-touch-48 bg-navy-900 hover:bg-navy-950 text-white font-bold shadow rounded-xl">
+                        🔍 Test Connection
+                    </button>
+
+                    <button type="button" onclick="window.syncAllToSupabaseUI()" class="btn-touch-48 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow rounded-xl">
+                        ☁️ Push All Data to Cloud
+                    </button>
+                </div>
+            </form>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
+                <div class="font-extrabold text-navy-900 flex items-center gap-1.5">
+                    <span>📜 Quick SQL Setup for Supabase</span>
+                </div>
+                <p class="text-slate-600 leading-relaxed text-[11px]">
+                    Create a table named <code class="bg-white px-1 py-0.5 rounded border border-slate-300 font-mono font-bold text-navy-900">ck_cms_store</code> in your Supabase SQL Editor:
+                </p>
+                <pre class="bg-navy-950 text-saffron-400 p-3 rounded-lg text-[10px] font-mono overflow-x-auto select-all">CREATE TABLE IF NOT EXISTS public.ck_cms_store (
+    id TEXT PRIMARY KEY,
+    content JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.ck_cms_store ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Read/Write" ON public.ck_cms_store FOR ALL USING (true);</pre>
+            </div>
+        </div>
+    `;
+}
+
+window.handleSaveSupabaseSettings = function(e) {
+    if (e) e.preventDefault();
+    const url = document.getElementById('sb_url').value.trim();
+    const key = document.getElementById('sb_key').value.trim();
+
+    state.settings.supabaseUrl = url;
+    state.settings.supabaseKey = key;
+
+    saveStore(window.renderApp);
+    if (window.showToast) window.showToast('Supabase settings saved!', 'success');
+};
+
+window.testSupabaseConnectionUI = async function() {
+    if (window.showToast) window.showToast('Testing Supabase connection...', 'info');
+    const { testSupabaseConnection } = await import('../../../services/supabase.js');
+    const res = await testSupabaseConnection();
+    if (res.success) {
+        if (window.showToast) window.showToast(`✅ ${res.message}`, 'success');
+    } else {
+        if (window.showToast) window.showToast(`🚨 Connection Failed: ${res.message}`, 'error');
+    }
+};
+
+window.syncAllToSupabaseUI = async function() {
+    if (window.showToast) window.showToast('Syncing all CMS data to Supabase...', 'info');
+    const { saveAllToSupabase } = await import('../../../services/supabase.js');
+    const success = await saveAllToSupabase();
+    if (success) {
+        if (window.showToast) window.showToast('✅ All packages, albums & settings pushed to Supabase!', 'success');
+    } else {
+        if (window.showToast) window.showToast('🚨 Push failed. Ensure table ck_cms_store exists in Supabase.', 'error');
+    }
+};
+
 async function sha256(str) {
     const buffer = new TextEncoder().encode(str);
     const hash = await crypto.subtle.digest('SHA-256', buffer);
@@ -359,7 +468,7 @@ window.handleChangePassword = async function(e) {
     const pass = document.getElementById('sec_pass').value.trim();
 
     if (!user || !pass) {
-        alert('Please enter both username and password.');
+        if (window.showToast) window.showToast('Please enter both username and password.', 'error');
         return;
     }
 
@@ -367,5 +476,6 @@ window.handleChangePassword = async function(e) {
     state.settings.adminPassHash = await sha256(pass);
 
     saveStore(window.renderApp);
-    alert('Admin credentials updated successfully!');
+    if (window.showToast) window.showToast('Admin credentials updated successfully!', 'success');
 };
+
