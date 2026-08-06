@@ -447,7 +447,7 @@ export function renderMainView(filteredPkgs) {
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                        ${state.packages.slice(0, 6).map(p => renderCard(p)).join('')}
+                        ${filteredPkgs.map(p => renderCard(p)).join('')}
                     </div>
                 </section>
             ` : ''}
@@ -648,7 +648,7 @@ export function renderModals() {
         const itineraryList = pkg.itinerary || [];
 
         html += `
-            <div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 overflow-y-auto">
+            <div onclick="if(event.target===this) window.closeDetail()" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 overflow-y-auto">
                 <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative my-auto p-5 sm:p-8 space-y-6">
                     <button onclick="window.closeDetail()" class="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-full font-bold shadow min-h-[36px] flex items-center justify-center">✕</button>
                     

@@ -246,6 +246,7 @@ window.navigate = function(tabId) {
     }
     state.activeTab = tabId;
     state.selectedAlbum = null;
+    state.selectedPkg = null;
     render();
     window.scrollTo(0, 0);
 };
