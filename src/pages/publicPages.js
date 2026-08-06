@@ -281,8 +281,15 @@ export function renderPublicGalleryView() {
 
     return `
         <div id="gallery-main-section" class="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="text-saffron-500 font-extrabold text-xs uppercase tracking-widest">✨ CHANDRAKAILASH TRAVEL MEMORIES</span>
+            <div class="text-center max-w-2xl mx-auto space-y-3">
+                <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-saffron-50/90 border border-saffron-200/80 shadow-sm animate-fade-in transition duration-300 hover:shadow-md">
+                    <div class="w-6 h-6 rounded-full bg-saffron-500 text-white flex items-center justify-center shadow-sm flex-shrink-0">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.65 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.35-3-3-3z"/>
+                        </svg>
+                    </div>
+                    <span class="text-saffron-600 font-bold uppercase tracking-[2px] text-[13px]">CHANDRAKAILASH TRAVEL MEMORIES</span>
+                </div>
                 <h1 class="text-2xl sm:text-4xl font-extrabold text-navy-900">Photo Gallery & Tour Albums</h1>
                 <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">Relive unforgettable journeys from our religious, family and adventure tours across India.</p>
             </div>
