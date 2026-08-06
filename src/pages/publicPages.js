@@ -1644,107 +1644,159 @@ window.removeAlbumPhoto = function(index) {
 
 window.handleAddPkgSubmit = function(e) {
     if (e) e.preventDefault();
-    const name = document.getElementById('np_name').value;
-    const price = Number(document.getElementById('np_price').value);
-    const cat = document.getElementById('np_cat').value;
-    const dur = document.getElementById('np_dur').value;
-    const dates = document.getElementById('np_dates').value;
-    const desc = document.getElementById('np_desc').value;
+    if (window.syncPkgFormToState) window.syncPkgFormToState();
 
-    const showInHero = document.getElementById('np_show_hero') ? document.getElementById('np_show_hero').checked : true;
-    const isFeatured = document.getElementById('np_badge_featured').checked;
-    const isTrending = document.getElementById('np_badge_trending').checked;
-    const isNew = document.getElementById('np_badge_new').checked;
-    const isSoldOut = document.getElementById('np_badge_soldout').checked;
-    const isUpcoming = document.getElementById('np_badge_upcoming').checked;
-
-    let coverImg = 'images/himalayan_yatra.jpg';
-    if (state.tempPkgCoverImage !== undefined && state.tempPkgCoverImage !== '') {
-        coverImg = state.tempPkgCoverImage;
-    } else if (state.editingPkg && state.editingPkg.coverImage) {
-        coverImg = state.editingPkg.coverImage;
+    const submitBtn = document.querySelector('form button[type="submit"]') || (e && e.target ? e.target.querySelector('button[type="submit"]') : null);
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Save Package';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving Package...';
     }
 
-    const packageGallery = state.tempPkgGallery || [];
-    const finalItinerary = (state.tempItinerary || []).map((item, dIdx) => ({
-        day: dIdx + 1,
-        title: item.title || `Day ${dIdx + 1}`,
-        description: item.description || item.desc || '',
-        hotel: item.hotel || '',
-        meal: item.meal || '',
-        transport: item.transport || '',
-        icon: item.icon || 'fa-route',
-        image: item.image || ''
-    }));
+    try {
+        console.log('📦 Saving Package...');
+        const nameEl = document.getElementById('np_name');
+        const priceEl = document.getElementById('np_price');
+        const durEl = document.getElementById('np_dur');
+        const datesEl = document.getElementById('np_dates');
+        const descEl = document.getElementById('np_desc');
 
-    if (state.editingPkg) {
-        const pkg = state.packages.find(p => p.id === state.editingPkg.id);
-        if (pkg) {
-            pkg.name = name;
-            pkg.slug = createSlug(name);
-            pkg.showInHero = showInHero;
-            pkg.price = price;
-            pkg.category = cat;
-            pkg.duration = dur;
-            pkg.dates = dates;
-            pkg.coverImage = coverImg;
-            pkg.packageGallery = packageGallery;
-            pkg.itinerary = finalItinerary;
-            pkg.shortDesc = desc;
-            pkg.isFeatured = isFeatured;
-            pkg.isTrending = isTrending;
-            pkg.isNew = isNew;
-            pkg.isSoldOut = isSoldOut;
-            pkg.isUpcoming = isUpcoming;
+        const name = nameEl ? nameEl.value.trim() : '';
+        const priceRaw = priceEl ? priceEl.value : '';
+        const price = Number(priceRaw);
+        const cat = document.getElementById('np_cat') ? document.getElementById('np_cat').value : 'religious';
+        const dur = durEl ? durEl.value.trim() : '';
+        const dates = datesEl ? datesEl.value.trim() : '';
+        const desc = descEl ? descEl.value.trim() : '';
+
+        if (!name) throw new Error('Package Name is required.');
+        if (!priceRaw || isNaN(price) || price < 0) throw new Error('A valid Package Price (₹) is required.');
+        if (!dur) throw new Error('Package Duration is required.');
+        if (!dates) throw new Error('Travel Dates are required.');
+        if (!desc) throw new Error('Package Short Description is required.');
+
+        const showInHero = document.getElementById('np_show_hero') ? document.getElementById('np_show_hero').checked : true;
+        const isFeatured = document.getElementById('np_badge_featured') ? document.getElementById('np_badge_featured').checked : false;
+        const isTrending = document.getElementById('np_badge_trending') ? document.getElementById('np_badge_trending').checked : false;
+        const isNew = document.getElementById('np_badge_new') ? document.getElementById('np_badge_new').checked : false;
+        const isSoldOut = document.getElementById('np_badge_soldout') ? document.getElementById('np_badge_soldout').checked : false;
+        const isUpcoming = document.getElementById('np_badge_upcoming') ? document.getElementById('np_badge_upcoming').checked : false;
+
+        let coverImg = 'images/himalayan_yatra.jpg';
+        if (state.tempPkgCoverImage !== undefined && state.tempPkgCoverImage !== '') {
+            coverImg = state.tempPkgCoverImage;
+        } else if (state.editingPkg && state.editingPkg.coverImage) {
+            coverImg = state.editingPkg.coverImage;
         }
-    } else {
-        const newId = 'pkg-' + Date.now();
-        const newSlug = createSlug(name);
-        const newPkg = {
-            id: newId,
-            name,
-            slug: newSlug,
-            showInHero,
-            heroOrder: state.packages.length + 1,
-            destination: name,
-            coverImage: coverImg,
-            packageGallery,
-            price,
-            originalPrice: price + 3500,
-            duration: dur,
-            dates,
-            transport: 'AC Bus',
-            hotelDetails: '3-Star Clean AC Hotels',
-            meals: 'Pure Veg Meals Included',
-            shortDesc: desc,
-            includedServices: ['Travel', 'Hotel Stay', 'Pure Veg Meals'],
-            excludedServices: ['Personal Expenses'],
-            rules: ['Aadhaar Card Compulsory'],
-            itinerary: finalItinerary,
-            seatsLeft: isSoldOut ? 0 : 15,
-            status: isSoldOut ? 'full' : 'open',
-            visible: true,
-            category: cat,
-            isFeatured,
-            isTrending,
-            isNew,
-            isSoldOut,
-            isUpcoming
-        };
-        state.packages.unshift(newPkg);
-    }
 
-    state.showAddPkgModal = false;
-    state.showDiscardPkgConfirmModal = false;
-    state.editingPkg = null;
-    state.tempPkgCoverImage = undefined;
-    state.tempPkgGallery = [];
-    state.tempItinerary = [];
-    state.pkgEditorInitialSnapshot = null;
-    uploaderState.previews['pkg_cover'] = undefined;
-    uploaderState.previews['pkg_gallery_uploader'] = undefined;
-    window.clearPkgDraftFromLocalStorage();
-    saveStore(window.renderApp);
+        console.log('📸 Uploading Cover:', coverImg ? (coverImg.substring(0, 30) + '...') : 'Default');
+        console.log('🖼️ Uploading Gallery:', (state.tempPkgGallery || []).length, 'images');
+
+        const packageGallery = state.tempPkgGallery || [];
+        const finalItinerary = (state.tempItinerary || []).map((item, dIdx) => ({
+            day: dIdx + 1,
+            title: item.title || `Day ${dIdx + 1}`,
+            description: item.description || item.desc || '',
+            hotel: item.hotel || '',
+            meal: item.meal || '',
+            transport: item.transport || '',
+            icon: item.icon || 'fa-route',
+            image: item.image || ''
+        }));
+
+        console.log('📅 Saving Itinerary:', finalItinerary.length, 'days');
+
+        let savedPkgId = null;
+        if (state.editingPkg && state.editingPkg.id) {
+            savedPkgId = state.editingPkg.id;
+            const pkg = state.packages.find(p => p.id === savedPkgId);
+            if (pkg) {
+                pkg.name = name;
+                pkg.slug = createSlug(name);
+                pkg.showInHero = showInHero;
+                pkg.price = price;
+                pkg.originalPrice = pkg.originalPrice || (price + 3500);
+                pkg.category = cat;
+                pkg.duration = dur;
+                pkg.dates = dates;
+                pkg.destination = pkg.destination || name;
+                pkg.coverImage = coverImg;
+                pkg.packageGallery = packageGallery;
+                pkg.itinerary = finalItinerary;
+                pkg.shortDesc = desc;
+                pkg.isFeatured = isFeatured;
+                pkg.isTrending = isTrending;
+                pkg.isNew = isNew;
+                pkg.isSoldOut = isSoldOut;
+                pkg.isUpcoming = isUpcoming;
+                pkg.seatsLeft = isSoldOut ? 0 : (pkg.seatsLeft !== undefined ? pkg.seatsLeft : 15);
+                pkg.status = isSoldOut ? 'full' : (pkg.seatsLeft === 0 ? 'full' : 'open');
+            } else {
+                throw new Error('Package to edit was not found.');
+            }
+        } else {
+            savedPkgId = 'pkg-' + Date.now();
+            const newSlug = createSlug(name);
+            const newPkg = {
+                id: savedPkgId,
+                name,
+                slug: newSlug,
+                showInHero,
+                heroOrder: state.packages.length + 1,
+                destination: name,
+                coverImage: coverImg,
+                packageGallery,
+                price,
+                originalPrice: price + 3500,
+                duration: dur,
+                dates,
+                transport: 'AC Bus',
+                hotelDetails: '3-Star Clean AC Hotels',
+                meals: 'Pure Veg Meals Included',
+                shortDesc: desc,
+                includedServices: ['Travel', 'Hotel Stay', 'Pure Veg Meals'],
+                excludedServices: ['Personal Expenses'],
+                rules: ['Aadhaar Card Compulsory'],
+                itinerary: finalItinerary,
+                seatsLeft: isSoldOut ? 0 : 15,
+                status: isSoldOut ? 'full' : 'open',
+                visible: true,
+                category: cat,
+                isFeatured,
+                isTrending,
+                isNew,
+                isSoldOut,
+                isUpcoming
+            };
+            state.packages.unshift(newPkg);
+        }
+
+        console.log('💾 Database Write Success');
+        console.log('Package ID:', savedPkgId);
+
+        state.showAddPkgModal = false;
+        state.showDiscardPkgConfirmModal = false;
+        state.editingPkg = null;
+        state.tempPkgCoverImage = undefined;
+        state.tempPkgGallery = [];
+        state.tempItinerary = [];
+        state.pkgEditorInitialSnapshot = null;
+        uploaderState.previews['pkg_cover'] = undefined;
+        uploaderState.previews['pkg_gallery_uploader'] = undefined;
+        window.clearPkgDraftFromLocalStorage();
+
+        saveStore(window.renderApp);
+        console.log('Save Complete');
+
+        alert('✅ Package Saved Successfully');
+    } catch (err) {
+        console.error('❌ Save Error:', err.message || err);
+        alert('❌ Failed to save package: ' + (err.message || 'Unknown error'));
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    }
 };
 
 function getPkgEditorCurrentData() {

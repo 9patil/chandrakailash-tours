@@ -279,6 +279,9 @@ window.handleUploaderFileSelect = async function(e, id, allowMultiple = false) {
 async function processUploaderFiles(id, files, allowMultiple) {
     if (!files || files.length === 0) return;
 
+    if (window.syncPkgFormToState) window.syncPkgFormToState();
+    if (window.syncAlbumFormToState) window.syncAlbumFormToState();
+
     if (!allowMultiple) {
         const file = files[0];
         uploaderState.progress[id] = { active: true, percent: 30, status: 'Reading Image...', fileName: file.name };
@@ -289,6 +292,7 @@ async function processUploaderFiles(id, files, allowMultiple) {
             uploaderState.progress[id].status = 'Compressing & Optimizing Image (WebP)...';
             render();
 
+            console.log('📸 Uploading Cover:', file.name);
             const res = await compressImageFile(file);
 
             uploaderState.progress[id].percent = 100;
@@ -299,11 +303,20 @@ async function processUploaderFiles(id, files, allowMultiple) {
 
             if (id === 'bm_logo') state.tempBrandingLogo = res.dataUrl;
             if (id === 'bm_herobg') state.tempBrandingHeroBg = res.dataUrl;
-            if (id === 'pkg_cover') state.tempPkgCoverImage = res.dataUrl;
-            if (id === 'album_cover') state.tempAlbumCoverImage = res.dataUrl;
+            if (id === 'pkg_cover') {
+                state.tempPkgCoverImage = res.dataUrl;
+                if (state.editingPkg) state.editingPkg.coverImage = res.dataUrl;
+            }
+            if (id === 'album_cover') {
+                state.tempAlbumCoverImage = res.dataUrl;
+                if (state.editingAlbum) state.editingAlbum.coverImage = res.dataUrl;
+            }
             if (id === 'hero_banner_img') state.tempHeroBannerImg = res.dataUrl;
 
+            if (window.savePkgDraftToLocalStorage) window.savePkgDraftToLocalStorage();
+
         } catch (err) {
+            console.error('❌ Upload Error:', err);
             alert(err.message || 'Image processing failed.');
         } finally {
             uploaderState.progress[id] = { active: false };
@@ -317,6 +330,7 @@ async function processUploaderFiles(id, files, allowMultiple) {
         const total = files.length;
 
         if (id === 'pkg_gallery_uploader') {
+            console.log('🖼️ Uploading Gallery:', total, 'images');
             const currentPkgGallery = [...(state.tempPkgGallery || [])];
             for (const file of files) {
                 count++;
@@ -326,10 +340,13 @@ async function processUploaderFiles(id, files, allowMultiple) {
                     const res = await compressImageFile(file);
                     currentPkgGallery.push(res.dataUrl);
                 } catch (err) {
+                    console.error('❌ Gallery Upload Error:', err);
                     alert(`Skipped file ${file.name}: ${err.message}`);
                 }
             }
             state.tempPkgGallery = currentPkgGallery;
+            if (state.editingPkg) state.editingPkg.packageGallery = [...currentPkgGallery];
+            if (window.savePkgDraftToLocalStorage) window.savePkgDraftToLocalStorage();
         } else if (id === 'album_photos_uploader') {
             const currentAlbumPhotos = [...(state.tempAlbumPhotos || [])];
             for (const file of files) {
@@ -349,6 +366,7 @@ async function processUploaderFiles(id, files, allowMultiple) {
                 }
             }
             state.tempAlbumPhotos = currentAlbumPhotos;
+            if (state.editingAlbum) state.editingAlbum.photos = [...currentAlbumPhotos];
         }
 
         uploaderState.progress[id] = { active: false };
@@ -357,12 +375,20 @@ async function processUploaderFiles(id, files, allowMultiple) {
 }
 
 window.removeUploaderImage = function(id) {
+    if (window.syncPkgFormToState) window.syncPkgFormToState();
     uploaderState.previews[id] = '';
     if (id === 'bm_logo') state.tempBrandingLogo = '';
     if (id === 'bm_herobg') state.tempBrandingHeroBg = '';
-    if (id === 'pkg_cover') state.tempPkgCoverImage = '';
-    if (id === 'album_cover') state.tempAlbumCoverImage = '';
+    if (id === 'pkg_cover') {
+        state.tempPkgCoverImage = '';
+        if (state.editingPkg) state.editingPkg.coverImage = '';
+    }
+    if (id === 'album_cover') {
+        state.tempAlbumCoverImage = '';
+        if (state.editingAlbum) state.editingAlbum.coverImage = '';
+    }
     if (id === 'hero_banner_img') state.tempHeroBannerImg = '';
+    if (window.savePkgDraftToLocalStorage) window.savePkgDraftToLocalStorage();
     render();
 };
 

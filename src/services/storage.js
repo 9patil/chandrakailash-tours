@@ -72,6 +72,24 @@ export function saveStore(renderCallback) {
 }
 
 export function initStorage(handleRouteCallback) {
+    try {
+        const localPkgs = localStorage.getItem('ck_pkgs_v21');
+        if (localPkgs) {
+            const parsed = JSON.parse(localPkgs);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                state.packages = parsed;
+            }
+        }
+        const localSet = localStorage.getItem('ck_set_v21');
+        if (localSet) state.settings = JSON.parse(localSet);
+        const localAlb = localStorage.getItem('ck_alb_v21');
+        if (localAlb) state.albums = JSON.parse(localAlb);
+        const localRev = localStorage.getItem('ck_rev_v21');
+        if (localRev) state.reviews = JSON.parse(localRev);
+        const localBk = localStorage.getItem('ck_bk_v21');
+        if (localBk) state.bookings = JSON.parse(localBk);
+    } catch (e) {}
+
     loadFromIndexedDB('ck_full_state_v21').then((savedState) => {
         if (savedState) {
             if (savedState.settings) state.settings = savedState.settings;
@@ -80,10 +98,16 @@ export function initStorage(handleRouteCallback) {
             if (savedState.reviews) state.reviews = savedState.reviews;
             if (savedState.bookings) state.bookings = savedState.bookings;
             if (savedState.translations) state.translations = savedState.translations;
-            ensurePackagesHaveSlugsAndHeroProps();
-            if (handleRouteCallback && typeof handleRouteCallback === 'function') {
-                handleRouteCallback();
-            }
+        }
+        ensurePackagesHaveSlugsAndHeroProps();
+        if (handleRouteCallback && typeof handleRouteCallback === 'function') {
+            handleRouteCallback();
+        }
+    }).catch(err => {
+        console.warn('IndexedDB load warning:', err);
+        ensurePackagesHaveSlugsAndHeroProps();
+        if (handleRouteCallback && typeof handleRouteCallback === 'function') {
+            handleRouteCallback();
         }
     });
 }
