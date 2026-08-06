@@ -1,4 +1,4 @@
-/* चंद्रकैलाश Tours & Travels - Persistent Storage Service (LocalStorage + IndexedDB) */
+/* चंद्रकैलाश Tours & Travels - Clean Client-Side Storage Service (LocalStorage + IndexedDB) */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
 
@@ -50,7 +50,6 @@ export async function loadFromIndexedDB(key) {
 export async function fetchStorageData() {
     const timestamp = Date.now();
 
-    // 1. Load persistent local state first
     let localPkgs = null;
     let localAlbums = null;
     let localSettings = null;
@@ -75,7 +74,6 @@ export async function fetchStorageData() {
         if (!localReviews && Array.isArray(idbState.reviews)) localReviews = idbState.reviews;
     }
 
-    // 2. Fetch static JSON and merge cleanly
     try {
         const [pkgsRes, albumsRes, settingsRes, reviewsRes] = await Promise.allSettled([
             fetch(`data/packages.json?v=${timestamp}`, { cache: 'no-store' }),
@@ -187,44 +185,8 @@ export async function initStorage(handleRouteCallback) {
 }
 
 export async function savePackageData(packageData) {
-    console.log('Uploading image...');
-
-    if (packageData.coverImage && packageData.coverImage.startsWith('data:image/')) {
-        try {
-            const uploadRes = await fetch('/api/uploadImage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageDataUrl: packageData.coverImage, folder: 'uploads' })
-            });
-            if (uploadRes.ok) {
-                const uploadJson = await uploadRes.json();
-                if (uploadJson.path) packageData.coverImage = uploadJson.path;
-            }
-        } catch (e) {}
-    }
-
-    if (Array.isArray(packageData.packageGallery)) {
-        for (let i = 0; i < packageData.packageGallery.length; i++) {
-            const img = packageData.packageGallery[i];
-            if (typeof img === 'string' && img.startsWith('data:image/')) {
-                try {
-                    const uploadRes = await fetch('/api/uploadImage', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageDataUrl: img, folder: 'uploads' })
-                    });
-                    if (uploadRes.ok) {
-                        const uploadJson = await uploadRes.json();
-                        if (uploadJson.path) packageData.packageGallery[i] = uploadJson.path;
-                    }
-                } catch (e) {}
-            }
-        }
-    }
-
-    console.log('Image uploaded.');
-    console.log('Saving package...');
-    console.log('Updating JSON...');
+    console.log('Saving package locally...');
+    console.log('Updating JSON state...');
 
     state.packages = state.packages || [];
     const existingIdx = state.packages.findIndex(p => p.id === packageData.id);
@@ -235,96 +197,32 @@ export async function savePackageData(packageData) {
     }
 
     saveStore();
-
-    try {
-        const res = await fetch('/api/savePackage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ packageData })
-        });
-        if (res.ok) {
-            const resJson = await res.json();
-            if (resJson.package) {
-                const pIdx = state.packages.findIndex(p => p.id === resJson.package.id);
-                if (pIdx !== -1) state.packages[pIdx] = resJson.package;
-            }
-            console.log('Commit successful.');
-        }
-    } catch (e) {}
-
     console.log('Reloading packages...');
     await fetchStorageData();
 
-    return { success: true, package: packageData, message: 'Package Saved Successfully' };
+    return { success: true, package: packageData, message: 'Package Saved (Local Browser Storage)' };
 }
 
 export const savePackageCloud = savePackageData;
 
 export async function deletePackageData(packageId) {
-    console.log('Saving package...');
-    console.log('Updating JSON...');
+    console.log('Deleting package locally...');
+    console.log('Updating JSON state...');
 
     state.packages = (state.packages || []).filter(p => p.id !== packageId);
     saveStore();
 
-    try {
-        const res = await fetch('/api/deletePackage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ packageId })
-        });
-        if (res.ok) {
-            console.log('Commit successful.');
-        }
-    } catch (e) {}
-
     console.log('Reloading packages...');
     await fetchStorageData();
 
-    return { success: true, packageId, message: 'Package Deleted Successfully' };
+    return { success: true, packageId, message: 'Package Deleted (Local Browser Storage)' };
 }
 
 export const deletePackageCloud = deletePackageData;
 
 export async function saveAlbumData(albumData) {
-    console.log('Uploading image...');
-
-    if (albumData.coverImage && albumData.coverImage.startsWith('data:image/')) {
-        try {
-            const uploadRes = await fetch('/api/uploadImage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageDataUrl: albumData.coverImage, folder: 'uploads' })
-            });
-            if (uploadRes.ok) {
-                const uploadJson = await uploadRes.json();
-                if (uploadJson.path) albumData.coverImage = uploadJson.path;
-            }
-        } catch (e) {}
-    }
-
-    if (Array.isArray(albumData.photos)) {
-        for (let i = 0; i < albumData.photos.length; i++) {
-            const photo = albumData.photos[i];
-            if (photo && photo.image && photo.image.startsWith('data:image/')) {
-                try {
-                    const uploadRes = await fetch('/api/uploadImage', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageDataUrl: photo.image, folder: 'uploads' })
-                    });
-                    if (uploadRes.ok) {
-                        const uploadJson = await uploadRes.json();
-                        if (uploadJson.path) photo.image = uploadJson.path;
-                    }
-                } catch (e) {}
-            }
-        }
-    }
-
-    console.log('Image uploaded.');
-    console.log('Saving package...');
-    console.log('Updating JSON...');
+    console.log('Saving album locally...');
+    console.log('Updating JSON state...');
 
     state.albums = state.albums || [];
     const existingIdx = state.albums.findIndex(a => a.id === albumData.id);
@@ -336,73 +234,40 @@ export async function saveAlbumData(albumData) {
 
     saveStore();
 
-    try {
-        const res = await fetch('/api/saveAlbum', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ albumData })
-        });
-        if (res.ok) {
-            console.log('Commit successful.');
-        }
-    } catch (e) {}
-
-    console.log('Reloading packages...');
+    console.log('Reloading albums...');
     await fetchStorageData();
 
-    return { success: true, album: albumData, message: 'Album Saved Successfully' };
+    return { success: true, album: albumData, message: 'Album Saved (Local Browser Storage)' };
 }
 
 export const saveAlbumCloud = saveAlbumData;
 
 export async function deleteAlbumData(albumId) {
-    console.log('Saving package...');
-    console.log('Updating JSON...');
+    console.log('Deleting album locally...');
+    console.log('Updating JSON state...');
 
     state.albums = (state.albums || []).filter(a => a.id !== albumId);
     saveStore();
 
-    try {
-        const res = await fetch('/api/deleteAlbum', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ albumId })
-        });
-        if (res.ok) {
-            console.log('Commit successful.');
-        }
-    } catch (e) {}
-
-    console.log('Reloading packages...');
+    console.log('Reloading albums...');
     await fetchStorageData();
 
-    return { success: true, albumId, message: 'Album Deleted Successfully' };
+    return { success: true, albumId, message: 'Album Deleted (Local Browser Storage)' };
 }
 
 export const deleteAlbumCloud = deleteAlbumData;
 
 export async function saveSettingsData(settingsData) {
-    console.log('Saving package...');
-    console.log('Updating JSON...');
+    console.log('Saving settings locally...');
+    console.log('Updating JSON state...');
 
     state.settings = { ...state.settings, ...settingsData };
     saveStore();
 
-    try {
-        const res = await fetch('/api/saveSettings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ settingsData })
-        });
-        if (res.ok) {
-            console.log('Commit successful.');
-        }
-    } catch (e) {}
-
-    console.log('Reloading packages...');
+    console.log('Reloading settings...');
     await fetchStorageData();
 
-    return { success: true, settings: state.settings, message: 'Settings Saved Successfully' };
+    return { success: true, settings: state.settings, message: 'Settings Saved (Local Browser Storage)' };
 }
 
 export const saveSettingsCloud = saveSettingsData;
