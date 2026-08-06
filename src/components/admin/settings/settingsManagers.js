@@ -1,7 +1,7 @@
 /* चंद्रकैलाश Tours & Travels - Settings & Management Subcomponents */
 
 import { state } from '../../../context/state.js';
-import { saveStore } from '../../../services/storage.js';
+import { saveStore, saveSettingsCloud } from '../../../services/storage.js';
 import { exportToExcel } from '../../../utils/excelExporter.js';
 
 /* 1. ENQUIRIES MANAGER (LEAD MANAGER) */
@@ -230,7 +230,7 @@ export function renderContactSettings() {
     `;
 }
 
-window.handleSaveContact = function(e) {
+window.handleSaveContact = async function(e) {
     if (e) e.preventDefault();
     state.settings.phone = document.getElementById('ct_phone').value;
     state.settings.whatsapp = document.getElementById('ct_wa').value;
@@ -239,8 +239,13 @@ window.handleSaveContact = function(e) {
     state.settings.officeAddress = document.getElementById('ct_addr').value;
     state.settings.googleMapsUrl = document.getElementById('ct_gmaps').value;
 
-    saveStore(window.renderApp);
-    alert('Contact details updated successfully!');
+    try {
+        await saveSettingsCloud(state.settings);
+        if (window.renderApp) window.renderApp();
+        alert('✅ Contact details updated successfully!');
+    } catch (err) {
+        alert('❌ Failed to update contact details: ' + (err.message || 'Unknown error'));
+    }
 };
 
 /* 4. SEO SETTINGS */
@@ -267,14 +272,19 @@ export function renderSEOSettings() {
     `;
 }
 
-window.handleSaveSEO = function(e) {
+window.handleSaveSEO = async function(e) {
     if (e) e.preventDefault();
     state.settings.metaTitle = document.getElementById('seo_title').value;
     state.settings.metaDescription = document.getElementById('seo_desc').value;
     state.settings.metaKeywords = document.getElementById('seo_kw').value;
 
-    saveStore(window.renderApp);
-    alert('SEO meta settings saved successfully!');
+    try {
+        await saveSettingsCloud(state.settings);
+        if (window.renderApp) window.renderApp();
+        alert('✅ SEO meta settings saved successfully!');
+    } catch (err) {
+        alert('❌ Failed to save SEO meta: ' + (err.message || 'Unknown error'));
+    }
 };
 
 /* 5. TRANSLATIONS SETTINGS */

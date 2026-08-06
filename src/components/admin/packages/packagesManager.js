@@ -1,7 +1,5 @@
-/* चंद्रकैलाश Tours & Travels - Packages Manager Component */
-
 import { state } from '../../../context/state.js';
-import { saveStore } from '../../../services/storage.js';
+import { saveStore, deletePackageCloud } from '../../../services/storage.js';
 
 export function renderPackagesManager() {
     const totalPkgs = state.packages.length;
@@ -136,9 +134,14 @@ window.duplicatePackage = function(id) {
     }
 };
 
-window.deletePackage = function(id) {
+window.deletePackage = async function(id) {
     if (confirm('Are you sure you want to delete this tour package?')) {
-        state.packages = state.packages.filter(p => p.id !== id);
-        saveStore(window.renderApp);
+        try {
+            await deletePackageCloud(id);
+            if (window.renderApp) window.renderApp();
+            alert('✅ Package Deleted Successfully');
+        } catch (err) {
+            alert('❌ Failed to delete package: ' + (err.message || 'Unknown error'));
+        }
     }
 };

@@ -2,7 +2,7 @@
 
 import { state } from '../../../context/state.js';
 import { renderMediaUploader } from '../../../utils/helpers.js';
-import { saveStore } from '../../../services/storage.js';
+import { saveStore, saveSettingsCloud } from '../../../services/storage.js';
 
 export function renderBrandingManager() {
     return `
@@ -65,7 +65,7 @@ export function renderBrandingManager() {
     `;
 }
 
-window.handleSaveBranding = function(e) {
+window.handleSaveBranding = async function(e) {
     if (e) e.preventDefault();
     state.settings.brandMarathi = document.getElementById('bm_marathi').value;
     state.settings.brandEnglish = document.getElementById('bm_english').value;
@@ -79,6 +79,11 @@ window.handleSaveBranding = function(e) {
         state.settings.heroBgImage = state.tempBrandingHeroBg;
     }
 
-    saveStore(window.renderApp);
-    alert('Branding settings saved successfully!');
+    try {
+        await saveSettingsCloud(state.settings);
+        if (window.renderApp) window.renderApp();
+        alert('✅ Branding settings saved successfully!');
+    } catch (err) {
+        alert('❌ Failed to save branding settings: ' + (err.message || 'Unknown error'));
+    }
 };

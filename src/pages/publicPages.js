@@ -5,8 +5,7 @@ import { t } from '../utils/i18n.js';
 import { getWhatsAppUrl, getInstagramUrl, createSlug, renderMediaUploader } from '../utils/helpers.js';
 import { openPrintablePdf, renderPrintableItineraryModal } from '../utils/pdfGenerator.js';
 import { renderAdminView } from './adminPage.js';
-import { handleAdminLogin } from './adminLoginHandler.js';
-import { saveStore } from '../services/storage.js';
+import { saveStore, savePackageCloud, saveAlbumCloud, saveSettingsCloud } from '../services/storage.js';
 import { renderLightboxModal } from '../components/public/lightbox.js';
 
 export function getActiveHeroSlides() {
@@ -1642,7 +1641,7 @@ window.removeAlbumPhoto = function(index) {
     }
 };
 
-window.handleAddPkgSubmit = function(e) {
+window.handleAddPkgSubmit = async function(e) {
     if (e) e.preventDefault();
     if (window.syncPkgFormToState) window.syncPkgFormToState();
 
@@ -1706,38 +1705,34 @@ window.handleAddPkgSubmit = function(e) {
 
         console.log('📅 Saving Itinerary:', finalItinerary.length, 'days');
 
-        let savedPkgId = null;
+        let targetPkg = null;
         if (state.editingPkg && state.editingPkg.id) {
-            savedPkgId = state.editingPkg.id;
-            const pkg = state.packages.find(p => p.id === savedPkgId);
-            if (pkg) {
-                pkg.name = name;
-                pkg.slug = createSlug(name);
-                pkg.showInHero = showInHero;
-                pkg.price = price;
-                pkg.originalPrice = pkg.originalPrice || (price + 3500);
-                pkg.category = cat;
-                pkg.duration = dur;
-                pkg.dates = dates;
-                pkg.destination = pkg.destination || name;
-                pkg.coverImage = coverImg;
-                pkg.packageGallery = packageGallery;
-                pkg.itinerary = finalItinerary;
-                pkg.shortDesc = desc;
-                pkg.isFeatured = isFeatured;
-                pkg.isTrending = isTrending;
-                pkg.isNew = isNew;
-                pkg.isSoldOut = isSoldOut;
-                pkg.isUpcoming = isUpcoming;
-                pkg.seatsLeft = isSoldOut ? 0 : (pkg.seatsLeft !== undefined ? pkg.seatsLeft : 15);
-                pkg.status = isSoldOut ? 'full' : (pkg.seatsLeft === 0 ? 'full' : 'open');
-            } else {
-                throw new Error('Package to edit was not found.');
-            }
+            const existing = state.packages.find(p => p.id === state.editingPkg.id);
+            targetPkg = existing ? { ...existing } : { id: state.editingPkg.id };
+            targetPkg.name = name;
+            targetPkg.slug = createSlug(name);
+            targetPkg.showInHero = showInHero;
+            targetPkg.price = price;
+            targetPkg.originalPrice = targetPkg.originalPrice || (price + 3500);
+            targetPkg.category = cat;
+            targetPkg.duration = dur;
+            targetPkg.dates = dates;
+            targetPkg.destination = targetPkg.destination || name;
+            targetPkg.coverImage = coverImg;
+            targetPkg.packageGallery = packageGallery;
+            targetPkg.itinerary = finalItinerary;
+            targetPkg.shortDesc = desc;
+            targetPkg.isFeatured = isFeatured;
+            targetPkg.isTrending = isTrending;
+            targetPkg.isNew = isNew;
+            targetPkg.isSoldOut = isSoldOut;
+            targetPkg.isUpcoming = isUpcoming;
+            targetPkg.seatsLeft = isSoldOut ? 0 : (targetPkg.seatsLeft !== undefined ? targetPkg.seatsLeft : 15);
+            targetPkg.status = isSoldOut ? 'full' : (targetPkg.seatsLeft === 0 ? 'full' : 'open');
         } else {
-            savedPkgId = 'pkg-' + Date.now();
+            const savedPkgId = 'pkg-' + Date.now();
             const newSlug = createSlug(name);
-            const newPkg = {
+            targetPkg = {
                 id: savedPkgId,
                 name,
                 slug: newSlug,
@@ -1768,11 +1763,12 @@ window.handleAddPkgSubmit = function(e) {
                 isSoldOut,
                 isUpcoming
             };
-            state.packages.unshift(newPkg);
         }
 
+        await savePackageCloud(targetPkg);
+
         console.log('💾 Database Write Success');
-        console.log('Package ID:', savedPkgId);
+        console.log('Package ID:', targetPkg.id);
 
         state.showAddPkgModal = false;
         state.showDiscardPkgConfirmModal = false;
@@ -1785,7 +1781,7 @@ window.handleAddPkgSubmit = function(e) {
         uploaderState.previews['pkg_gallery_uploader'] = undefined;
         window.clearPkgDraftFromLocalStorage();
 
-        saveStore(window.renderApp);
+        if (window.renderApp) window.renderApp();
         console.log('Save Complete');
 
         alert('✅ Package Saved Successfully');
@@ -2083,7 +2079,7 @@ window.confirmDiscardAlbumChanges = function() {
     if (window.renderApp) window.renderApp();
 };
 
-window.handleCreateAlbumSubmit = function(e) {
+window.handleCreateAlbumSubmit = async function(e) {
     if (e) e.preventDefault();
     const title = document.getElementById('alb_title').value.trim();
     const yearVal = (document.getElementById('alb_year').value || '').trim();
@@ -2099,18 +2095,18 @@ window.handleCreateAlbumSubmit = function(e) {
 
     const photos = state.tempAlbumPhotos || [];
 
+    let targetAlbum = null;
     if (state.editingAlbum) {
-        const alb = state.albums.find(a => a.id === state.editingAlbum.id);
-        if (alb) {
-            alb.title = title;
-            alb.year = year;
-            alb.category = cat;
-            alb.description = desc;
-            alb.coverImage = coverImg;
-            alb.photos = photos;
-        }
+        const existing = (state.albums || []).find(a => a.id === state.editingAlbum.id);
+        targetAlbum = existing ? { ...existing } : { id: state.editingAlbum.id };
+        targetAlbum.title = title;
+        targetAlbum.year = year;
+        targetAlbum.category = cat;
+        targetAlbum.description = desc;
+        targetAlbum.coverImage = coverImg;
+        targetAlbum.photos = photos;
     } else {
-        const newAlbum = {
+        targetAlbum = {
             id: 'alb-' + Date.now(),
             title,
             year,
@@ -2119,19 +2115,24 @@ window.handleCreateAlbumSubmit = function(e) {
             coverImage: coverImg,
             photos
         };
-        state.albums = state.albums || [];
-        state.albums.unshift(newAlbum);
     }
 
-    state.showAddAlbumModal = false;
-    state.showDiscardAlbumConfirmModal = false;
-    state.editingAlbum = null;
-    state.tempAlbumCoverImage = undefined;
-    state.tempAlbumPhotos = [];
-    state.albumEditorInitialSnapshot = null;
-    uploaderState.previews['album_cover'] = undefined;
-    uploaderState.previews['album_photos_uploader'] = undefined;
-    saveStore(window.renderApp);
+    try {
+        await saveAlbumCloud(targetAlbum);
+        state.showAddAlbumModal = false;
+        state.showDiscardAlbumConfirmModal = false;
+        state.editingAlbum = null;
+        state.tempAlbumCoverImage = undefined;
+        state.tempAlbumPhotos = [];
+        state.albumEditorInitialSnapshot = null;
+        uploaderState.previews['album_cover'] = undefined;
+        uploaderState.previews['album_photos_uploader'] = undefined;
+
+        if (window.renderApp) window.renderApp();
+        alert('✅ Album Saved Successfully');
+    } catch (err) {
+        alert('❌ Failed to save album: ' + (err.message || 'Unknown error'));
+    }
 };
 
 window.handleAdminLogin = async function(e) {
