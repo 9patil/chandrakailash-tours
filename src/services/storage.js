@@ -1,7 +1,6 @@
-/* चंद्रकैलाश Tours & Travels - Complete Multi-Tier Persistent Storage Service */
+/* चंद्रकैलाश Tours & Travels - Persistent Storage Service (LocalStorage + IndexedDB) */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
-import { fetchStateFromSupabase, saveSectionToSupabase, isSupabaseConfigured } from './supabase.js';
 
 const DB_NAME = 'ChandrakailashToursDB';
 const DB_VERSION = 2;
@@ -48,10 +47,10 @@ export async function loadFromIndexedDB(key) {
     }
 }
 
-export async function fetchCloudData() {
+export async function fetchStorageData() {
     const timestamp = Date.now();
 
-    // 1. Read persistent local state first so user edits are never lost
+    // 1. Load persistent local state first
     let localPkgs = null;
     let localAlbums = null;
     let localSettings = null;
@@ -76,16 +75,7 @@ export async function fetchCloudData() {
         if (!localReviews && Array.isArray(idbState.reviews)) localReviews = idbState.reviews;
     }
 
-    // 2. Try Supabase Cloud Database if configured
-    if (isSupabaseConfigured()) {
-        const loadedFromSupabase = await fetchStateFromSupabase();
-        if (loadedFromSupabase) {
-            console.log('Loaded package count:', (state.packages || []).length);
-            return;
-        }
-    }
-
-    // 3. Fetch static/cloud JSON and merge cleanly
+    // 2. Fetch static JSON and merge cleanly
     try {
         const [pkgsRes, albumsRes, settingsRes, reviewsRes] = await Promise.allSettled([
             fetch(`data/packages.json?v=${timestamp}`, { cache: 'no-store' }),
@@ -103,7 +93,14 @@ export async function fetchCloudData() {
             if (Array.isArray(localPkgs) && localPkgs.length > 0) {
                 const mergedMap = new Map();
                 cloudPkgs.forEach(p => mergedMap.set(p.id, p));
-                localPkgs.forEach(p => mergedMap.set(p.id, p));
+                localPkgs.forEach(p => {
+                    const existing = mergedMap.get(p.id);
+                    if (existing) {
+                        mergedMap.set(p.id, { ...existing, ...p });
+                    } else {
+                        mergedMap.set(p.id, p);
+                    }
+                });
                 state.packages = Array.from(mergedMap.values());
             } else {
                 state.packages = cloudPkgs;
@@ -152,8 +149,11 @@ export async function fetchCloudData() {
         ensurePackagesHaveSlugsAndHeroProps();
     }
 
+    saveStore(null);
     console.log('Loaded package count:', (state.packages || []).length);
 }
+
+export const fetchCloudData = fetchStorageData;
 
 export function saveStore(renderCallback) {
     try {
@@ -180,31 +180,15 @@ export function saveStore(renderCallback) {
 }
 
 export async function initStorage(handleRouteCallback) {
-    await fetchCloudData();
+    await fetchStorageData();
     if (handleRouteCallback && typeof handleRouteCallback === 'function') {
         handleRouteCallback();
     }
 }
 
-async function syncToCloudStore(type, data) {
-    if (isSupabaseConfigured()) {
-        await saveSectionToSupabase(type, data);
-        return;
-    }
-
-    try {
-        await fetch('/api/db', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, data })
-        });
-    } catch (e) {}
-}
-
-export async function savePackageCloud(packageData) {
+export async function savePackageData(packageData) {
     console.log('Uploading image...');
 
-    // Process cover image upload if base64
     if (packageData.coverImage && packageData.coverImage.startsWith('data:image/')) {
         try {
             const uploadRes = await fetch('/api/uploadImage', {
@@ -219,7 +203,6 @@ export async function savePackageCloud(packageData) {
         } catch (e) {}
     }
 
-    // Process gallery images upload if base64
     if (Array.isArray(packageData.packageGallery)) {
         for (let i = 0; i < packageData.packageGallery.length; i++) {
             const img = packageData.packageGallery[i];
@@ -253,7 +236,6 @@ export async function savePackageCloud(packageData) {
 
     saveStore();
 
-    let githubSyncSuccess = false;
     try {
         const res = await fetch('/api/savePackage', {
             method: 'POST',
@@ -266,29 +248,19 @@ export async function savePackageCloud(packageData) {
                 const pIdx = state.packages.findIndex(p => p.id === resJson.package.id);
                 if (pIdx !== -1) state.packages[pIdx] = resJson.package;
             }
-            githubSyncSuccess = true;
             console.log('Commit successful.');
-        } else {
-            const errJson = await res.json().catch(() => ({ error: 'GitHub save failed' }));
-            console.warn('⚠️ GitHub API Notice:', errJson.error);
         }
-    } catch (e) {
-        console.warn('⚠️ Serverless savePackage notice:', e.message);
-    }
-
-    await syncToCloudStore('packages', state.packages);
-
-    if (githubSyncSuccess) {
-        console.log('Commit successful.');
-    }
+    } catch (e) {}
 
     console.log('Reloading packages...');
-    await fetchCloudData();
+    await fetchStorageData();
 
     return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
 
-export async function deletePackageCloud(packageId) {
+export const savePackageCloud = savePackageData;
+
+export async function deletePackageData(packageId) {
     console.log('Saving package...');
     console.log('Updating JSON...');
 
@@ -306,15 +278,15 @@ export async function deletePackageCloud(packageId) {
         }
     } catch (e) {}
 
-    await syncToCloudStore('packages', state.packages);
-
     console.log('Reloading packages...');
-    await fetchCloudData();
+    await fetchStorageData();
 
     return { success: true, packageId, message: 'Package Deleted Successfully' };
 }
 
-export async function saveAlbumCloud(albumData) {
+export const deletePackageCloud = deletePackageData;
+
+export async function saveAlbumData(albumData) {
     console.log('Uploading image...');
 
     if (albumData.coverImage && albumData.coverImage.startsWith('data:image/')) {
@@ -375,15 +347,15 @@ export async function saveAlbumCloud(albumData) {
         }
     } catch (e) {}
 
-    await syncToCloudStore('albums', state.albums);
-
     console.log('Reloading packages...');
-    await fetchCloudData();
+    await fetchStorageData();
 
     return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
 
-export async function deleteAlbumCloud(albumId) {
+export const saveAlbumCloud = saveAlbumData;
+
+export async function deleteAlbumData(albumId) {
     console.log('Saving package...');
     console.log('Updating JSON...');
 
@@ -401,15 +373,15 @@ export async function deleteAlbumCloud(albumId) {
         }
     } catch (e) {}
 
-    await syncToCloudStore('albums', state.albums);
-
     console.log('Reloading packages...');
-    await fetchCloudData();
+    await fetchStorageData();
 
     return { success: true, albumId, message: 'Album Deleted Successfully' };
 }
 
-export async function saveSettingsCloud(settingsData) {
+export const deleteAlbumCloud = deleteAlbumData;
+
+export async function saveSettingsData(settingsData) {
     console.log('Saving package...');
     console.log('Updating JSON...');
 
@@ -427,10 +399,10 @@ export async function saveSettingsCloud(settingsData) {
         }
     } catch (e) {}
 
-    await syncToCloudStore('settings', state.settings);
-
     console.log('Reloading packages...');
-    await fetchCloudData();
+    await fetchStorageData();
 
     return { success: true, settings: state.settings, message: 'Settings Saved Successfully' };
 }
+
+export const saveSettingsCloud = saveSettingsData;
