@@ -10,6 +10,16 @@ import { getWhatsAppUrl, getInstagramUrl, renderLogoSvg, compressImageFile } fro
 import { renderMainView, renderModals, attachAdminLoginListeners } from './pages/publicPages.js';
 
 export function render() {
+    const pkgDialog = document.getElementById('pkg-modal-dialog');
+    const pkgBackdrop = document.getElementById('pkg-modal-backdrop');
+    const albumDialog = document.getElementById('album-modal-dialog');
+    const albumBackdrop = document.getElementById('album-modal-backdrop');
+
+    const savedPkgDialogScroll = pkgDialog ? pkgDialog.scrollTop : null;
+    const savedPkgBackdropScroll = pkgBackdrop ? pkgBackdrop.scrollTop : null;
+    const savedAlbumDialogScroll = albumDialog ? albumDialog.scrollTop : null;
+    const savedAlbumBackdropScroll = albumBackdrop ? albumBackdrop.scrollTop : null;
+
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         loadingScreen.style.display = 'none';
@@ -190,6 +200,36 @@ export function render() {
 
     attachAdminLoginListeners();
     attachMicroAnimations();
+
+    requestAnimationFrame(() => {
+        const newPkgDialog = document.getElementById('pkg-modal-dialog');
+        const newPkgBackdrop = document.getElementById('pkg-modal-backdrop');
+        const newAlbumDialog = document.getElementById('album-modal-dialog');
+        const newAlbumBackdrop = document.getElementById('album-modal-backdrop');
+
+        if (window._scrollToNewDayPending && window._targetNewDayId) {
+            const newDayEl = document.getElementById(window._targetNewDayId);
+            if (newDayEl && newPkgDialog) {
+                newDayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            window._scrollToNewDayPending = false;
+            window._targetNewDayId = null;
+        } else {
+            if (newPkgDialog && savedPkgDialogScroll !== null) {
+                newPkgDialog.scrollTop = savedPkgDialogScroll;
+            }
+            if (newPkgBackdrop && savedPkgBackdropScroll !== null) {
+                newPkgBackdrop.scrollTop = savedPkgBackdropScroll;
+            }
+        }
+
+        if (newAlbumDialog && savedAlbumDialogScroll !== null) {
+            newAlbumDialog.scrollTop = savedAlbumDialogScroll;
+        }
+        if (newAlbumBackdrop && savedAlbumBackdropScroll !== null) {
+            newAlbumBackdrop.scrollTop = savedAlbumBackdropScroll;
+        }
+    });
 }
 
 window.renderApp = render;

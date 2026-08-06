@@ -779,8 +779,8 @@ export function renderModals() {
         const itineraryItems = state.tempItinerary || [];
 
         html += `
-            <div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 overflow-y-auto">
-                <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[94vh] overflow-y-auto p-5 sm:p-8 shadow-2xl my-auto space-y-6">
+            <div id="pkg-modal-backdrop" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 overflow-y-auto">
+                <div id="pkg-modal-dialog" class="bg-white rounded-2xl max-w-4xl w-full max-h-[94vh] overflow-y-auto p-5 sm:p-8 shadow-2xl my-auto space-y-6">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                         <h3 class="text-xl font-bold text-navy-900">${pkg.id ? 'Edit Tour Package' : 'Add New Tour Package'}</h3>
                         <button type="button" onclick="window.handlePkgEditorCancel()" class="text-slate-400 hover:text-slate-700 text-xl font-bold p-1 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg hover:bg-slate-100" title="Close / Cancel">✕</button>
@@ -871,7 +871,7 @@ export function renderModals() {
                                     ${pkgGallery.map((img, idx) => `
                                         <div class="relative h-20 rounded-lg overflow-hidden border group">
                                             <img src="${img}" class="w-full h-full object-cover" />
-                                            <button type="button" onclick="window.removePkgGalleryImage(${idx})" class="absolute top-1 right-1 bg-rose-600 text-white w-6 h-6 rounded-full text-[10px] font-bold shadow flex items-center justify-center">✕</button>
+                                            <button type="button" onclick="window.removePkgGalleryImage(${idx}, event)" class="absolute top-1 right-1 bg-rose-600 text-white w-6 h-6 rounded-full text-[10px] font-bold shadow flex items-center justify-center">✕</button>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -893,7 +893,7 @@ export function renderModals() {
                                     </h4>
                                     <p class="text-[11px] text-slate-500">Create unlimited itinerary days with reordering, hotel, meal, and transport info.</p>
                                 </div>
-                                <button type="button" onclick="window.addItineraryDay()" class="btn-touch-48 bg-saffron-500 hover:bg-saffron-600 text-white font-bold text-xs shadow self-start sm:self-auto">
+                                <button type="button" onclick="window.addItineraryDay(event)" class="btn-touch-48 bg-saffron-500 hover:bg-saffron-600 text-white font-bold text-xs shadow self-start sm:self-auto">
                                     ➕ Add New Day
                                 </button>
                             </div>
@@ -901,6 +901,7 @@ export function renderModals() {
                             <div class="space-y-3">
                                 ${itineraryItems.map((item, idx) => `
                                     <div 
+                                        id="${item.id || ('itin-day-' + idx)}"
                                         class="itinerary-builder-card ${item.collapsed ? 'collapsed' : ''}"
                                         draggable="true"
                                         ondragstart="window.handleItineraryDragStart(event, ${idx})"
@@ -908,7 +909,7 @@ export function renderModals() {
                                         ondrop="window.handleItineraryDrop(event, ${idx})"
                                     >
                                         <!-- CARD HEADER -->
-                                        <div class="itinerary-card-header" onclick="window.toggleCollapseItineraryDay(${idx})">
+                                        <div class="itinerary-card-header" onclick="window.toggleCollapseItineraryDay(${idx}, event)">
                                             <div class="flex items-center gap-2">
                                                 <i class="fa-solid fa-grip-vertical itinerary-drag-handle" title="Drag to reorder day"></i>
                                                 <span class="bg-navy-900 text-saffron-400 font-extrabold text-xs px-2.5 py-1 rounded-lg">Day ${idx + 1}</span>
@@ -916,19 +917,19 @@ export function renderModals() {
                                             </div>
 
                                             <div class="itinerary-action-btns" onclick="event.stopPropagation();">
-                                                <button type="button" onclick="window.toggleCollapseItineraryDay(${idx})" class="btn-itinerary-action" title="${item.collapsed ? 'Expand Day' : 'Collapse Day'}">
+                                                <button type="button" onclick="window.toggleCollapseItineraryDay(${idx}, event)" class="btn-itinerary-action" title="${item.collapsed ? 'Expand Day' : 'Collapse Day'}">
                                                     <i class="fa-solid ${item.collapsed ? 'fa-chevron-down' : 'fa-chevron-up'}"></i>
                                                 </button>
-                                                <button type="button" onclick="window.moveItineraryDay(${idx}, -1)" ${idx === 0 ? 'disabled class="btn-itinerary-action opacity-40"' : 'class="btn-itinerary-action"'} title="Move Up">
+                                                <button type="button" onclick="window.moveItineraryDay(${idx}, -1, event)" ${idx === 0 ? 'disabled class="btn-itinerary-action opacity-40"' : 'class="btn-itinerary-action"'} title="Move Up">
                                                     ↑
                                                 </button>
-                                                <button type="button" onclick="window.moveItineraryDay(${idx}, 1)" ${idx === itineraryItems.length - 1 ? 'disabled class="btn-itinerary-action opacity-40"' : 'class="btn-itinerary-action"'} title="Move Down">
+                                                <button type="button" onclick="window.moveItineraryDay(${idx}, 1, event)" ${idx === itineraryItems.length - 1 ? 'disabled class="btn-itinerary-action opacity-40"' : 'class="btn-itinerary-action"'} title="Move Down">
                                                     ↓
                                                 </button>
-                                                <button type="button" onclick="window.duplicateItineraryDay(${idx})" class="btn-itinerary-action" title="Duplicate Day">
+                                                <button type="button" onclick="window.duplicateItineraryDay(${idx}, event)" class="btn-itinerary-action" title="Duplicate Day">
                                                     📋
                                                 </button>
-                                                <button type="button" onclick="window.deleteItineraryDay(${idx})" class="btn-itinerary-action danger" title="Delete Day">
+                                                <button type="button" onclick="window.deleteItineraryDay(${idx}, event)" class="btn-itinerary-action danger" title="Delete Day">
                                                     🗑️
                                                 </button>
                                             </div>
@@ -1030,7 +1031,7 @@ export function renderModals() {
                             </div>
 
                             <div class="pt-2">
-                                <button type="button" onclick="window.addItineraryDay()" class="btn-touch-48 w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs">
+                                <button type="button" onclick="window.addItineraryDay(event)" class="btn-touch-48 w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs">
                                     ➕ Add New Day
                                 </button>
                             </div>
@@ -1076,8 +1077,8 @@ export function renderModals() {
         const photos = state.tempAlbumPhotos !== undefined ? state.tempAlbumPhotos : (alb.photos || []);
 
         html += `
-            <div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 overflow-y-auto">
-                <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-8 shadow-2xl my-auto space-y-4">
+            <div id="album-modal-backdrop" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 overflow-y-auto">
+                <div id="album-modal-dialog" class="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-8 shadow-2xl my-auto space-y-4">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-100">
                         <h3 class="text-xl font-bold text-navy-900">${alb.id ? 'Manage Album & Photos' : 'Create New Gallery Album'}</h3>
                         <button type="button" onclick="window.handleAlbumEditorCancel()" class="text-slate-400 hover:text-slate-700 text-xl font-bold p-1 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg hover:bg-slate-100" title="Close / Cancel">✕</button>
@@ -1140,7 +1141,7 @@ export function renderModals() {
                                                 <img src="${p.image}" class="w-full h-full object-cover" />
                                             </div>
                                             <input type="text" value="${p.title}" onchange="state.tempAlbumPhotos[${idx}].title = this.value" class="w-full p-1 border rounded text-[10px] font-semibold" placeholder="Photo caption..." />
-                                            <button type="button" onclick="window.removeAlbumPhoto(${idx})" class="text-rose-600 text-[10px] font-bold hover:underline block text-right pt-0.5 min-h-[32px]">Delete</button>
+                                            <button type="button" onclick="window.removeAlbumPhoto(${idx}, event)" class="text-rose-600 text-[10px] font-bold hover:underline block text-right pt-0.5 min-h-[32px]">Delete</button>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1463,11 +1464,14 @@ window.syncPkgFormToState = function() {
     window.savePkgDraftToLocalStorage();
 };
 
-window.addItineraryDay = function() {
+window.addItineraryDay = function(e) {
+    if (e) e.preventDefault();
     window.syncPkgFormToState();
     state.tempItinerary = state.tempItinerary || [];
     const nextDayNum = state.tempItinerary.length + 1;
+    const newDayId = 'itin-day-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     state.tempItinerary.push({
+        id: newDayId,
         day: nextDayNum,
         title: `Day ${nextDayNum}: Sightseeing & Travel`,
         description: '',
@@ -1479,11 +1483,16 @@ window.addItineraryDay = function() {
         collapsed: false
     });
     if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
+    
+    window._scrollToNewDayPending = true;
+    window._targetNewDayId = newDayId;
+
     window.savePkgDraftToLocalStorage();
     if (window.renderApp) window.renderApp();
 };
 
-window.deleteItineraryDay = function(idx) {
+window.deleteItineraryDay = function(idx, e) {
+    if (e) e.preventDefault();
     window.syncPkgFormToState();
     if (state.tempItinerary && state.tempItinerary.length > idx) {
         state.tempItinerary.splice(idx, 1);
@@ -1496,7 +1505,8 @@ window.deleteItineraryDay = function(idx) {
     }
 };
 
-window.moveItineraryDay = function(idx, direction) {
+window.moveItineraryDay = function(idx, direction, e) {
+    if (e) e.preventDefault();
     window.syncPkgFormToState();
     if (!state.tempItinerary) return;
     const newIdx = idx + direction;
@@ -1513,21 +1523,30 @@ window.moveItineraryDay = function(idx, direction) {
     }
 };
 
-window.duplicateItineraryDay = function(idx) {
+window.duplicateItineraryDay = function(idx, e) {
+    if (e) e.preventDefault();
     window.syncPkgFormToState();
     if (!state.tempItinerary || !state.tempItinerary[idx]) return;
+    const newDayId = 'itin-day-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const clone = JSON.parse(JSON.stringify(state.tempItinerary[idx]));
-    clone.title = clone.title + ' (Copy)';
+    clone.id = newDayId;
+    clone.title = (clone.title || '') + ' (Copy)';
+    clone.collapsed = false;
     state.tempItinerary.splice(idx + 1, 0, clone);
     state.tempItinerary.forEach((item, dIdx) => {
         item.day = dIdx + 1;
     });
     if (state.editingPkg) state.editingPkg.itinerary = [...state.tempItinerary];
+
+    window._scrollToNewDayPending = true;
+    window._targetNewDayId = newDayId;
+
     window.savePkgDraftToLocalStorage();
     if (window.renderApp) window.renderApp();
 };
 
-window.toggleCollapseItineraryDay = function(idx) {
+window.toggleCollapseItineraryDay = function(idx, e) {
+    if (e) e.preventDefault();
     window.syncPkgFormToState();
     if (state.tempItinerary && state.tempItinerary[idx]) {
         state.tempItinerary[idx].collapsed = !state.tempItinerary[idx].collapsed;
@@ -1573,9 +1592,13 @@ window.handleItineraryDrop = function(e, targetIdx) {
     if (window.renderApp) window.renderApp();
 };
 
-window.removePkgGalleryImage = function(index) {
+window.removePkgGalleryImage = function(index, e) {
+    if (e) e.preventDefault();
+    window.syncPkgFormToState();
     if (state.tempPkgGallery) {
         state.tempPkgGallery.splice(index, 1);
+        if (state.editingPkg) state.editingPkg.packageGallery = [...state.tempPkgGallery];
+        window.savePkgDraftToLocalStorage();
         if (window.renderApp) window.renderApp();
     }
 };
@@ -1635,7 +1658,8 @@ window.openEditAlbumModal = function(id) {
     if (window.renderApp) window.renderApp();
 };
 
-window.removeAlbumPhoto = function(index) {
+window.removeAlbumPhoto = function(index, e) {
+    if (e) e.preventDefault();
     if (state.tempAlbumPhotos) {
         state.tempAlbumPhotos.splice(index, 1);
         if (window.renderApp) window.renderApp();
