@@ -193,6 +193,16 @@ export function render() {
 
 window.renderApp = render;
 window.navigate = function(tabId) {
+    if (tabId === 'admin' && !state.adminLoggedIn) {
+        if (window.openAdminLoginModal) {
+            window.openAdminLoginModal();
+        } else {
+            state.showLoginModal = true;
+            state.loginErrorMessage = '';
+            render();
+        }
+        return;
+    }
     state.activeTab = tabId;
     state.selectedAlbum = null;
     render();
@@ -213,7 +223,8 @@ window.handleSecretAdminTrigger = function() {
     if (state.secretClickCount >= 3) {
         state.secretClickCount = 0;
         if (!state.adminLoggedIn) {
-            state.showLoginModal = true;
+            if (window.openAdminLoginModal) window.openAdminLoginModal();
+            else state.showLoginModal = true;
         } else {
             state.activeTab = 'admin';
         }

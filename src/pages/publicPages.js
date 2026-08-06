@@ -1182,9 +1182,9 @@ export function renderModals() {
 
     if (state.showLoginModal && !state.adminLoggedIn) {
         html += `
-            <div class="fixed inset-0 z-50 bg-navy-950/85 backdrop-blur-md flex items-center justify-center p-4">
-                <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-6 relative border border-slate-200">
-                    <button onclick="state.showLoginModal=false; state.loginErrorMessage=''; window.renderApp();" class="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-600 w-9 h-9 rounded-full font-bold shadow flex items-center justify-center text-sm transition min-h-[36px]">✕</button>
+            <div id="admin-login-backdrop" onclick="window.closeAdminLoginModal(event)" class="fixed inset-0 z-[9998] bg-navy-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto cursor-pointer" style="pointer-events: auto;">
+                <div id="admin-login-modal-card" onclick="event.stopPropagation()" class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-6 relative border border-slate-200 z-[9999] cursor-default my-auto" style="pointer-events: auto;">
+                    <button type="button" id="admin-login-close-btn" onclick="window.closeAdminLoginModal(event)" class="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-600 w-9 h-9 rounded-full font-bold shadow flex items-center justify-center text-sm transition min-h-[36px] min-w-[36px] z-[10000] cursor-pointer" style="pointer-events: auto;" title="Close Modal">✕</button>
                     
                     <div class="text-center space-y-2">
                         <div class="w-14 h-14 rounded-2xl bg-navy-900 text-saffron-400 flex items-center justify-center mx-auto text-2xl shadow-lg border border-saffron-500/30">
@@ -1224,11 +1224,11 @@ export function renderModals() {
                         </div>
 
                         <div class="pt-2 flex gap-2">
-                            <button type="button" onclick="state.showLoginModal=false; state.loginErrorMessage=''; window.renderApp();" class="btn-touch-48 flex-1 border border-slate-200 hover:bg-slate-50 text-slate-700">
+                            <button type="button" id="admin-login-cancel-btn" onclick="window.closeAdminLoginModal(event)" class="btn-touch-48 flex-1 border border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer" style="pointer-events: auto;">
                                 Cancel
                             </button>
-                            <button type="submit" class="btn-touch-48 btn-glow-navy flex-1 bg-navy-900 hover:bg-navy-950 text-white font-extrabold shadow-lg">
-                                Secure Login
+                            <button type="submit" id="admin-login-submit-btn" class="btn-touch-48 btn-glow-navy flex-1 bg-navy-900 hover:bg-navy-950 text-white font-extrabold shadow-lg cursor-pointer" style="pointer-events: auto;">
+                                Login to CMS
                             </button>
                         </div>
                     </form>
@@ -1943,12 +1943,32 @@ window.confirmDiscardPkgChanges = function() {
     if (window.renderApp) window.renderApp();
 };
 
+window.openAdminLoginModal = function() {
+    state.showLoginModal = true;
+    state.loginErrorMessage = '';
+    document.body.style.overflow = 'hidden';
+    if (window.renderApp) window.renderApp();
+};
+
+window.closeAdminLoginModal = function(e) {
+    if (e && e.target && e.target !== e.currentTarget && e.target.closest('#admin-login-modal-card') && !e.target.closest('#admin-login-close-btn') && !e.target.closest('#admin-login-cancel-btn')) {
+        return;
+    }
+    state.showLoginModal = false;
+    state.loginErrorMessage = '';
+    document.body.style.overflow = '';
+    if (window.renderApp) window.renderApp();
+};
+
 if (!window._pkgEditorListenersAttached) {
     window._pkgEditorListenersAttached = true;
 
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (state.showDiscardPkgConfirmModal) {
+            if (state.showLoginModal) {
+                e.preventDefault();
+                window.closeAdminLoginModal();
+            } else if (state.showDiscardPkgConfirmModal) {
                 e.preventDefault();
                 window.continuePkgEditing();
             } else if (state.showAddPkgModal) {
