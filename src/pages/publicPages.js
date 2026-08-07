@@ -787,9 +787,15 @@ export function renderModals() {
                     </div>
                     
                     <form onsubmit="window.handleAddPkgSubmit(event)" class="space-y-5 text-xs">
-                        <div class="admin-form-group">
-                            <label class="font-bold">Package Name *</label>
-                            <input type="text" id="np_name" value="${pkg.name || ''}" oninput="window.syncPkgFormToState()" required placeholder="e.g. Complete Char Dham Yatra 2026" class="admin-form-input font-bold" />
+                        <div class="admin-form-grid admin-form-grid-2">
+                            <div class="admin-form-group">
+                                <label class="font-bold">Package Name *</label>
+                                <input type="text" id="np_name" value="${pkg.name || ''}" oninput="window.syncPkgFormToState()" required placeholder="e.g. Complete Char Dham Yatra 2026" class="admin-form-input font-bold" />
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="font-bold">Destination / Location (📍) *</label>
+                                <input type="text" id="np_destination" value="${pkg.destination || ''}" oninput="window.syncPkgFormToState()" required placeholder="e.g. UTTAR PRADESH (VRINDAVAN - MATHURA)" class="admin-form-input font-bold" />
+                            </div>
                         </div>
                         
                         <div class="admin-form-grid admin-form-grid-2">
@@ -1424,6 +1430,7 @@ window.syncPkgFormToState = function() {
         state.editingPkg = {
             id: null,
             name: current.name,
+            destination: current.destination,
             price: current.price,
             category: current.category,
             duration: current.duration,
@@ -1441,6 +1448,7 @@ window.syncPkgFormToState = function() {
         };
     } else {
         state.editingPkg.name = current.name;
+        state.editingPkg.destination = current.destination;
         state.editingPkg.price = current.price;
         state.editingPkg.category = current.category;
         state.editingPkg.duration = current.duration;
@@ -1680,12 +1688,14 @@ window.handleAddPkgSubmit = async function(e) {
     try {
         console.log('📦 Saving Package...');
         const nameEl = document.getElementById('np_name');
+        const destEl = document.getElementById('np_destination');
         const priceEl = document.getElementById('np_price');
         const durEl = document.getElementById('np_dur');
         const datesEl = document.getElementById('np_dates');
         const descEl = document.getElementById('np_desc');
 
         const name = nameEl ? nameEl.value.trim() : '';
+        const destination = destEl ? destEl.value.trim() : '';
         const priceRaw = priceEl ? priceEl.value : '';
         const price = Number(priceRaw);
         const cat = document.getElementById('np_cat') ? document.getElementById('np_cat').value : 'religious';
@@ -1694,6 +1704,7 @@ window.handleAddPkgSubmit = async function(e) {
         const desc = descEl ? descEl.value.trim() : '';
 
         if (!name) throw new Error('Package Name is required.');
+        if (!destination) throw new Error('Destination / Location (📍) is required.');
         if (!priceRaw || isNaN(price) || price < 0) throw new Error('A valid Package Price (₹) is required.');
         if (!dur) throw new Error('Package Duration is required.');
         if (!dates) throw new Error('Travel Dates are required.');
@@ -1745,7 +1756,7 @@ window.handleAddPkgSubmit = async function(e) {
             targetPkg.category = cat;
             targetPkg.duration = dur;
             targetPkg.dates = dates;
-            targetPkg.destination = targetPkg.destination || name;
+            targetPkg.destination = destination;
             targetPkg.coverImage = coverImg;
             targetPkg.packageGallery = packageGallery;
             targetPkg.itinerary = finalItinerary;
@@ -1766,7 +1777,7 @@ window.handleAddPkgSubmit = async function(e) {
                 slug: newSlug,
                 showInHero,
                 heroOrder: state.packages.length + 1,
-                destination: name,
+                destination,
                 coverImage: coverImg,
                 packageGallery,
                 price,
@@ -1825,6 +1836,7 @@ window.handleAddPkgSubmit = async function(e) {
 
 function getPkgEditorCurrentData() {
     const nameEl = document.getElementById('np_name');
+    const destEl = document.getElementById('np_destination');
     const priceEl = document.getElementById('np_price');
     const catEl = document.getElementById('np_cat');
     const durEl = document.getElementById('np_dur');
@@ -1838,6 +1850,7 @@ function getPkgEditorCurrentData() {
     const upEl = document.getElementById('np_badge_upcoming');
 
     const name = nameEl ? nameEl.value : (state.editingPkg ? (state.editingPkg.name || '') : '');
+    const destination = destEl ? destEl.value : (state.editingPkg ? (state.editingPkg.destination || '') : '');
     const priceRaw = priceEl ? priceEl.value : (state.editingPkg ? (state.editingPkg.price !== undefined ? state.editingPkg.price : '') : '');
     const price = priceRaw === '' ? '' : Number(priceRaw);
     const category = catEl ? catEl.value : (state.editingPkg ? (state.editingPkg.category || 'religious') : 'religious');
@@ -1863,6 +1876,7 @@ function getPkgEditorCurrentData() {
 
     return {
         name,
+        destination,
         price,
         category,
         duration,
