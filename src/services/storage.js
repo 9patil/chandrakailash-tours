@@ -1,4 +1,4 @@
-/* चंद्रकैलाश Tours & Travels - Complete Firestore & Local Persistence Service */
+/* चंद्रकैलाश Tours & Travels - Real-Time Multi-Device & Cloud Persistence Service */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
 import { 
@@ -12,6 +12,8 @@ import {
     deleteImageFromFirebaseStorage,
     setupFirestoreRealtimeSync
 } from './firebase.js';
+
+let lastCloudTimestamp = 0;
 
 export function saveStore(renderCallback) {
     try {
@@ -28,49 +30,81 @@ export function saveStore(renderCallback) {
     }
 }
 
-export async function fetchStorageData() {
-    console.log('🔥 Fetching latest data from Firestore Database...');
-    await seedFirestoreIfEmpty();
-
+export async function syncToCloudDatabase() {
+    saveStore();
     try {
-        const [pkgs, albums, reviews, bookings, siteSettings, i18n] = await Promise.all([
+        const payload = {
+            packages: state.packages || [],
+            albums: state.albums || [],
+            settings: state.settings || {},
+            reviews: state.reviews || []
+        };
+        const res = await fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.lastUpdated) lastCloudTimestamp = data.lastUpdated;
+            console.log('☁️ Multi-Device Cloud DB Sync Success!');
+        }
+    } catch (err) {
+        console.warn('⚠️ Cloud DB Sync Notice:', err.message);
+    }
+}
+
+export async function fetchStorageData() {
+    console.log('☁️ Fetching latest multi-device data from Cloud Database...');
+
+    // 1. Fetch from Vercel Multi-Device API (/api/db)
+    try {
+        const res = await fetch('/api/db?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+            const cloudData = await res.json();
+            if (cloudData) {
+                if (Array.isArray(cloudData.packages) && cloudData.packages.length > 0) {
+                    state.packages = cloudData.packages;
+                }
+                if (Array.isArray(cloudData.albums) && cloudData.albums.length > 0) {
+                    state.albums = cloudData.albums;
+                }
+                if (Array.isArray(cloudData.reviews) && cloudData.reviews.length > 0) {
+                    state.reviews = cloudData.reviews;
+                }
+                if (cloudData.settings && typeof cloudData.settings === 'object') {
+                    state.settings = { ...state.settings, ...cloudData.settings };
+                }
+                if (cloudData.lastUpdated) lastCloudTimestamp = cloudData.lastUpdated;
+
+                ensurePackagesHaveSlugsAndHeroProps();
+                saveStore();
+                console.log('✅ Multi-Device Cloud Data Loaded! Package count:', state.packages.length);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ Cloud DB API fetch notice:', e.message);
+    }
+
+    // 2. Secondary Firestore Fallback
+    try {
+        const [pkgs, albums, reviews, siteSettings] = await Promise.all([
             fetchCollectionFromFirestore(COLLECTIONS.PACKAGES),
             fetchCollectionFromFirestore(COLLECTIONS.ALBUMS),
             fetchCollectionFromFirestore(COLLECTIONS.REVIEWS),
-            fetchCollectionFromFirestore(COLLECTIONS.BOOKINGS).catch(() => []),
-            fetchDocFromFirestore(COLLECTIONS.SETTINGS, 'siteSettings'),
-            fetchDocFromFirestore(COLLECTIONS.SETTINGS, 'translations')
+            fetchDocFromFirestore(COLLECTIONS.SETTINGS, 'siteSettings')
         ]);
 
-        if (Array.isArray(pkgs) && pkgs.length > 0) {
-            state.packages = pkgs;
-        }
-
-        if (Array.isArray(albums) && albums.length > 0) {
-            state.albums = albums;
-        }
-
-        if (Array.isArray(reviews) && reviews.length > 0) {
-            state.reviews = reviews;
-        }
-
-        if (Array.isArray(bookings)) {
-            state.bookings = bookings;
-        }
-
-        if (siteSettings && typeof siteSettings === 'object') {
-            state.settings = { ...state.settings, ...siteSettings };
-        }
-
-        if (i18n && typeof i18n === 'object') {
-            state.translations = { ...state.translations, ...i18n };
-        }
+        if (Array.isArray(pkgs) && pkgs.length > 0) state.packages = pkgs;
+        if (Array.isArray(albums) && albums.length > 0) state.albums = albums;
+        if (Array.isArray(reviews) && reviews.length > 0) state.reviews = reviews;
+        if (siteSettings && typeof siteSettings === 'object') state.settings = { ...state.settings, ...siteSettings };
 
         ensurePackagesHaveSlugsAndHeroProps();
         saveStore();
-        console.log('✅ Firestore Load Success! Loaded package count:', (state.packages || []).length);
     } catch (err) {
-        console.error('❌ Cloud unavailable:', err.message);
+        console.warn('⚠️ Secondary Firestore Notice:', err.message);
         ensurePackagesHaveSlugsAndHeroProps();
         saveStore();
     }
@@ -78,15 +112,40 @@ export async function fetchStorageData() {
 
 export const fetchCloudData = fetchStorageData;
 
+export function setupMultiDeviceRealtimeSync() {
+    console.log('⚡ Initializing Multi-Device Real-Time Polling...');
+    setInterval(async () => {
+        try {
+            const res = await fetch('/api/db?t=' + Date.now(), { cache: 'no-store' });
+            if (res.ok) {
+                const cloudData = await res.json();
+                if (cloudData && cloudData.lastUpdated && cloudData.lastUpdated > lastCloudTimestamp) {
+                    lastCloudTimestamp = cloudData.lastUpdated;
+                    if (Array.isArray(cloudData.packages)) state.packages = cloudData.packages;
+                    if (Array.isArray(cloudData.albums)) state.albums = cloudData.albums;
+                    if (Array.isArray(cloudData.reviews)) state.reviews = cloudData.reviews;
+                    if (cloudData.settings) state.settings = { ...state.settings, ...cloudData.settings };
+
+                    ensurePackagesHaveSlugsAndHeroProps();
+                    saveStore();
+                    console.log('⚡ Real-time Multi-Device update received!');
+                    if (window.renderApp) window.renderApp();
+                }
+            }
+        } catch (e) {}
+    }, 3000);
+}
+
 export async function initStorage(handleRouteCallback) {
     try {
         await fetchStorageData();
+        setupMultiDeviceRealtimeSync();
         setupFirestoreRealtimeSync(() => {
             saveStore();
             if (window.renderApp) window.renderApp();
         });
     } catch (err) {
-        console.warn('⚠️ Firebase init notice:', err.message);
+        console.warn('⚠️ Storage init notice:', err.message);
     }
     if (handleRouteCallback && typeof handleRouteCallback === 'function') {
         handleRouteCallback();
@@ -98,38 +157,30 @@ export async function savePackageData(packageData) {
 
     // 1. Upload Cover Image (if base64)
     if (packageData.coverImage && packageData.coverImage.startsWith('data:image/')) {
-        console.log('Uploading cover image to Firebase Storage...');
+        console.log('Uploading cover image...');
         try {
             packageData.coverImage = await uploadImageToFirebaseStorage('packages', packageData.coverImage, 'pkg-cover');
-        } catch (e) {
-            console.warn('Cover upload notice:', e.message);
-        }
+        } catch (e) {}
     }
 
     // 2. Upload Gallery Images (if base64)
     if (Array.isArray(packageData.packageGallery)) {
-        console.log('Uploading gallery images to Firebase Storage...');
         for (let i = 0; i < packageData.packageGallery.length; i++) {
             const img = packageData.packageGallery[i];
             if (typeof img === 'string' && img.startsWith('data:image/')) {
                 try {
                     packageData.packageGallery[i] = await uploadImageToFirebaseStorage('packages', img, `pkg-gal-${i + 1}`);
-                } catch (e) {
-                    console.warn('Gallery upload notice:', e.message);
-                }
+                } catch (e) {}
             }
         }
     }
 
     // 3. Save Package Document to Firestore
-    console.log('Saving package document into Firestore...');
     try {
         await saveDocToFirestore(COLLECTIONS.PACKAGES, packageData.id, packageData);
-    } catch (e) {
-        console.warn('Firestore save notice:', e.message);
-    }
+    } catch (e) {}
 
-    // Update in-memory state & sync to persistent storage immediately
+    // Update in-memory state & sync to multi-device cloud database
     state.packages = state.packages || [];
     const existingIdx = state.packages.findIndex(p => p.id === packageData.id);
     if (existingIdx !== -1) {
@@ -138,7 +189,7 @@ export async function savePackageData(packageData) {
         state.packages.unshift(packageData);
     }
 
-    saveStore();
+    await syncToCloudDatabase();
     console.log('Finished package save!');
     return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
@@ -150,19 +201,15 @@ export async function deletePackageData(packageId) {
     
     const targetPkg = (state.packages || []).find(p => p.id === packageId);
     if (targetPkg) {
-        if (targetPkg.coverImage) {
-            deleteImageFromFirebaseStorage(targetPkg.coverImage);
-        }
+        if (targetPkg.coverImage) deleteImageFromFirebaseStorage(targetPkg.coverImage);
         if (Array.isArray(targetPkg.packageGallery)) {
-            for (const imgUrl of targetPkg.packageGallery) {
-                deleteImageFromFirebaseStorage(imgUrl);
-            }
+            for (const imgUrl of targetPkg.packageGallery) deleteImageFromFirebaseStorage(imgUrl);
         }
     }
 
     deleteDocFromFirestore(COLLECTIONS.PACKAGES, packageId);
     state.packages = (state.packages || []).filter(p => p.id !== packageId);
-    saveStore();
+    await syncToCloudDatabase();
 
     return { success: true, packageId, message: 'Package Deleted Successfully' };
 }
@@ -170,7 +217,6 @@ export async function deletePackageData(packageId) {
 export const deletePackageCloud = deletePackageData;
 
 export async function saveAlbumData(albumData) {
-    console.log('🔥 Uploading album cover...');
     if (albumData.coverImage && albumData.coverImage.startsWith('data:image/')) {
         try {
             albumData.coverImage = await uploadImageToFirebaseStorage('gallery', albumData.coverImage, 'alb-cover');
@@ -198,20 +244,16 @@ export async function saveAlbumData(albumData) {
         state.albums.unshift(albumData);
     }
 
-    saveStore();
+    await syncToCloudDatabase();
     return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
 
 export const saveAlbumCloud = saveAlbumData;
 
 export async function deleteAlbumData(albumId) {
-    console.log('🔥 Deleting album:', albumId);
-
     const targetAlb = (state.albums || []).find(a => a.id === albumId);
     if (targetAlb) {
-        if (targetAlb.coverImage) {
-            deleteImageFromFirebaseStorage(targetAlb.coverImage);
-        }
+        if (targetAlb.coverImage) deleteImageFromFirebaseStorage(targetAlb.coverImage);
         if (Array.isArray(targetAlb.photos)) {
             for (const p of targetAlb.photos) {
                 if (p && p.image) deleteImageFromFirebaseStorage(p.image);
@@ -221,7 +263,7 @@ export async function deleteAlbumData(albumId) {
 
     deleteDocFromFirestore(COLLECTIONS.ALBUMS, albumId);
     state.albums = (state.albums || []).filter(a => a.id !== albumId);
-    saveStore();
+    await syncToCloudDatabase();
 
     return { success: true, albumId, message: 'Album Deleted Successfully' };
 }
@@ -229,7 +271,6 @@ export async function deleteAlbumData(albumId) {
 export const deleteAlbumCloud = deleteAlbumData;
 
 export async function saveSettingsData(settingsData) {
-    console.log('🔥 Uploading logo / branding images...');
     if (settingsData.logoUrl && settingsData.logoUrl.startsWith('data:image/')) {
         try {
             settingsData.logoUrl = await uploadImageToFirebaseStorage('logo', settingsData.logoUrl, 'brand-logo');
@@ -244,7 +285,7 @@ export async function saveSettingsData(settingsData) {
     saveDocToFirestore(COLLECTIONS.SETTINGS, 'siteSettings', settingsData);
 
     state.settings = { ...state.settings, ...settingsData };
-    saveStore();
+    await syncToCloudDatabase();
     return { success: true, settings: state.settings, message: 'Settings Saved Successfully' };
 }
 
