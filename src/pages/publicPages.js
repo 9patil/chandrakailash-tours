@@ -140,6 +140,7 @@ export function renderHeroBannerSlider() {
 }
 
 export function renderCard(p) {
+    console.log('Homepage rendered:', p.price);
     const slug = p.slug || createSlug(p.name);
     return `
         <div 
@@ -1678,6 +1679,7 @@ window.handleAddPkgSubmit = async function(e) {
         const destination = destEl ? destEl.value.trim() : '';
         const priceRaw = priceEl ? priceEl.value : '';
         const price = Number(priceRaw);
+        console.log('Admin entered:', price);
         const cat = document.getElementById('np_cat') ? document.getElementById('np_cat').value : 'religious';
         const dur = durEl ? durEl.value.trim() : '';
         const dates = datesEl ? datesEl.value.trim() : '';

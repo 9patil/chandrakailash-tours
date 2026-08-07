@@ -195,7 +195,11 @@ export function setupFirestoreRealtimeSync(onUpdateCallback) {
     // 1. Packages Real-Time Listener
     onSnapshot(collection(db, COLLECTIONS.PACKAGES), (snapshot) => {
         const pkgs = [];
-        snapshot.forEach(docSnap => pkgs.push({ id: docSnap.id, ...docSnap.data() }));
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            console.log('Firestore loaded:', data.price);
+            pkgs.push({ id: docSnap.id, ...data });
+        });
         state.packages = pkgs;
         ensurePackagesHaveSlugsAndHeroProps();
         console.log('⚡ Real-time Package update received! Count:', pkgs.length);

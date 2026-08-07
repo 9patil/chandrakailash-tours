@@ -124,9 +124,12 @@ export function renderPackagesManager() {
 window.updatePackagePrice = async function(id, val) {
     const pkg = state.packages.find(p => p.id === id);
     if (pkg) {
-        const newPrice = Math.max(0, parseInt(val) || 0);
+        const newPrice = Math.max(0, Number(val) || 0);
+        console.log('Admin entered:', newPrice);
         pkg.price = newPrice;
-        pkg.originalPrice = newPrice + 3500;
+        if (!pkg.originalPrice) {
+            pkg.originalPrice = newPrice + 3500;
+        }
         try {
             await savePackageCloud(pkg);
             if (window.renderApp) window.renderApp();

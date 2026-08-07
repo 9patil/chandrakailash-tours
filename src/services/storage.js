@@ -114,6 +114,7 @@ export async function savePackageData(packageData) {
     }
 
     // 4. Save Package Document to Firestore
+    console.log('Firestore saved:', packageData.price);
     const success = await saveDocToFirestore(COLLECTIONS.PACKAGES, packageData.id, packageData);
     if (!success) {
         throw new Error(`Failed to save package ${packageData.id} to Firestore.`);
