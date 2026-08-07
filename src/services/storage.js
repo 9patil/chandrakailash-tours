@@ -265,3 +265,38 @@ export async function saveSettingsData(settingsData) {
 }
 
 export const saveSettingsCloud = saveSettingsData;
+
+export async function saveReviewData(reviewData) {
+    console.log('🔥 Saving review to Firestore:', reviewData.id);
+    const success = await saveDocToFirestore(COLLECTIONS.REVIEWS, reviewData.id, reviewData);
+    if (!success) {
+        throw new Error(`Failed to save review ${reviewData.id} to Firestore.`);
+    }
+
+    state.reviews = state.reviews || [];
+    const existingIdx = state.reviews.findIndex(r => r.id === reviewData.id);
+    if (existingIdx !== -1) {
+        state.reviews[existingIdx] = reviewData;
+    } else {
+        state.reviews.unshift(reviewData);
+    }
+
+    if (window.renderApp) window.renderApp();
+    return { success: true, review: reviewData, message: 'Review Saved Successfully' };
+}
+
+export const saveReviewCloud = saveReviewData;
+
+export async function deleteReviewData(reviewId) {
+    console.log('🔥 Permanently deleting review from Firestore:', reviewId);
+    const success = await deleteDocFromFirestore(COLLECTIONS.REVIEWS, reviewId);
+    if (!success) {
+        throw new Error(`Failed to delete review ${reviewId} from Firestore.`);
+    }
+
+    state.reviews = (state.reviews || []).filter(r => r.id !== reviewId);
+    if (window.renderApp) window.renderApp();
+    return { success: true, reviewId, message: 'Review Deleted Successfully' };
+}
+
+export const deleteReviewCloud = deleteReviewData;

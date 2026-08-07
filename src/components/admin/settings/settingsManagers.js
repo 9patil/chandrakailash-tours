@@ -1,7 +1,7 @@
 /* चंद्रकैलाश Tours & Travels - Settings & Management Subcomponents */
 
 import { state } from '../../../context/state.js';
-import { saveStore, saveSettingsCloud } from '../../../services/storage.js';
+import { saveStore, saveSettingsCloud, saveReviewCloud, deleteReviewCloud } from '../../../services/storage.js';
 import { exportToExcel } from '../../../utils/excelExporter.js';
 
 /* 1. ENQUIRIES MANAGER (LEAD MANAGER) */
@@ -179,18 +179,28 @@ export function renderReviewsManager() {
     `;
 }
 
-window.togglePinReview = function(id) {
+window.togglePinReview = async function(id) {
     const r = state.reviews.find(x => x.id === id);
     if (r) {
         r.pinned = !r.pinned;
-        saveStore(window.renderApp);
+        try {
+            await saveReviewCloud(r);
+            if (window.renderApp) window.renderApp();
+        } catch (e) {
+            alert('❌ Failed to update review pin: ' + (e.message || 'Unknown error'));
+        }
     }
 };
 
-window.deleteReview = function(id) {
+window.deleteReview = async function(id) {
     if (confirm('Delete this review?')) {
-        state.reviews = state.reviews.filter(x => x.id !== id);
-        saveStore(window.renderApp);
+        try {
+            await deleteReviewCloud(id);
+            if (window.renderApp) window.renderApp();
+            alert('✅ Review deleted successfully.');
+        } catch (e) {
+            alert('❌ Failed to delete review: ' + (e.message || 'Unknown error'));
+        }
     }
 };
 

@@ -5,7 +5,7 @@ import { t } from '../utils/i18n.js';
 import { getWhatsAppUrl, getInstagramUrl, createSlug, renderMediaUploader, getDynamicPackageAlbums } from '../utils/helpers.js';
 import { openPrintablePdf, renderPrintableItineraryModal } from '../utils/pdfGenerator.js';
 import { renderAdminView } from './adminPage.js';
-import { saveStore, savePackageCloud, saveAlbumCloud, saveSettingsCloud } from '../services/storage.js';
+import { saveStore, savePackageCloud, saveAlbumCloud, saveSettingsCloud, saveReviewCloud } from '../services/storage.js';
 import { renderLightboxModal } from '../components/public/lightbox.js';
 import { performAdminLogin } from './adminLoginHandler.js';
 
@@ -2266,6 +2266,38 @@ window.openLightboxSingle = function(image, title) {
     state.lightboxPhotoIndex = 0;
     state.activeLightboxPhoto = photoObj;
     if (window.renderApp) window.renderApp();
+};
+
+window.handleAddReviewSubmit = async function(e) {
+    if (e) e.preventDefault();
+    const nameEl = document.getElementById('rv_name');
+    const textEl = document.getElementById('rv_text');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const text = textEl ? textEl.value.trim() : '';
+
+    if (!name || !text) {
+        alert('Please enter your name and review.');
+        return;
+    }
+
+    const newReview = {
+        id: 'r-' + Date.now(),
+        name,
+        city: 'Maharashtra',
+        rating: 5,
+        review: text,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        pinned: true
+    };
+
+    try {
+        await saveReviewCloud(newReview);
+        state.showAddReviewModal = false;
+        if (window.renderApp) window.renderApp();
+        alert('✅ Thank you! Your review has been submitted successfully.');
+    } catch (err) {
+        alert('❌ Failed to save review: ' + (err.message || 'Unknown error'));
+    }
 };
 
 window.closeLightbox = function() {

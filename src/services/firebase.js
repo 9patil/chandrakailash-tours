@@ -167,11 +167,20 @@ export async function fetchDocFromFirestore(collectionName, docId) {
 
 export async function seedFirestoreIfEmpty() {
     try {
-        const pkgsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.PACKAGES)), 5000, 'Seed check');
+        // 1. Seed Packages if empty
+        const pkgsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.PACKAGES)), 5000, 'Seed check packages');
         if (pkgsSnap.empty) {
-            console.log('🌱 Firestore empty. Seeding initial packages...');
+            console.log('🌱 Firestore packages empty. Seeding initial packages...');
             for (const pkg of INITIAL_PACKAGES) {
                 await setDoc(doc(db, COLLECTIONS.PACKAGES, pkg.id), pkg);
+            }
+        }
+        // 2. Seed Reviews if empty
+        const revsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.REVIEWS)), 5000, 'Seed check reviews');
+        if (revsSnap.empty) {
+            console.log('🌱 Firestore reviews empty. Seeding initial reviews...');
+            for (const rev of INITIAL_REVIEWS) {
+                await setDoc(doc(db, COLLECTIONS.REVIEWS, rev.id), rev);
             }
         }
     } catch (err) {
@@ -213,10 +222,18 @@ export function setupFirestoreRealtimeSync(onUpdateCallback) {
 
     // 4. Reviews Real-Time Listener
     onSnapshot(collection(db, COLLECTIONS.REVIEWS), (snapshot) => {
-        const reviews = [];
-        snapshot.forEach(docSnap => reviews.push({ id: docSnap.id, ...docSnap.data() }));
-        state.reviews = reviews;
-        console.log('⚡ Real-time Reviews update received! Count:', reviews.length);
+        if (snapshot.empty && (!state.reviews || state.reviews.length === 0)) {
+            console.log('🌱 Reviews collection empty in Firestore. Seeding defaults...');
+            for (const rev of INITIAL_REVIEWS) {
+                setDoc(doc(db, COLLECTIONS.REVIEWS, rev.id), rev).catch(e => console.warn(e));
+            }
+            state.reviews = INITIAL_REVIEWS;
+        } else {
+            const reviews = [];
+            snapshot.forEach(docSnap => reviews.push({ id: docSnap.id, ...docSnap.data() }));
+            state.reviews = reviews;
+        }
+        console.log('⚡ Real-time Reviews update received! Count:', state.reviews.length);
         if (onUpdateCallback) onUpdateCallback();
     }, (err) => console.warn('⚠️ Reviews Sync Notice:', err.message));
 }
