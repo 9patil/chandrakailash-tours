@@ -155,14 +155,6 @@ window.openAlbum = function(albumId) {
     state.activeTab = 'gallery';
     state.selectedAlbum = album;
 
-    if (location.hash !== `#gallery/${albumId}`) {
-        try {
-            history.pushState({ galleryAlbum: albumId }, '', `#gallery/${albumId}`);
-        } catch (e) {
-            location.hash = `#gallery/${albumId}`;
-        }
-    }
-
     if (window.renderApp) window.renderApp();
     window.scrollTo({ top: 0, behavior: 'instant' });
 };

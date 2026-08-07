@@ -519,12 +519,22 @@ window.addEventListener('popstate', () => {
 let isAppBooted = false;
 
 function bootAppOnce() {
-    if (window.syncRouteFromURL) window.syncRouteFromURL();
-    render();
     if (!isAppBooted) {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        state.activeTab = 'home';
+        state.selectedAlbum = null;
+        state.selectedPkg = null;
+        if (window.location.hash) {
+            try {
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+            } catch (e) {}
+        }
         isAppBooted = true;
+    } else {
+        if (window.syncRouteFromURL) window.syncRouteFromURL();
     }
+
+    render();
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 }
 
 initStorage(() => {
