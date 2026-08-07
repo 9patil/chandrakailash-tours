@@ -23,16 +23,45 @@ function cleanImageArray(arr) {
     return arr.filter(img => img && typeof img === 'string' && !isDefaultBusImage(img));
 }
 
+function isSameAsInitial(pkg) {
+    if (!pkg || !pkg.id) return false;
+    const initial = INITIAL_PACKAGES.find(p => p.id === pkg.id);
+    if (!initial) return false;
+    return (
+        pkg.name === initial.name &&
+        pkg.price === initial.price &&
+        pkg.dates === initial.dates &&
+        pkg.duration === initial.duration &&
+        pkg.coverImage === initial.coverImage &&
+        pkg.shortDesc === initial.shortDesc
+    );
+}
+
 function mergePackageObjects(existing, incoming) {
     if (!existing) return incoming;
     if (!incoming) return existing;
 
-    const merged = { ...existing, ...incoming };
+    // If incoming is identical to hardcoded initial baseline data, BUT existing was edited by user, KEEP existing!
+    if (isSameAsInitial(incoming) && !isSameAsInitial(existing)) {
+        return { ...incoming, ...existing };
+    }
 
-    // Prevent default bus image or empty cover from overwriting user's custom cover photo
-    if (existing.coverImage && (!incoming.coverImage || isDefaultBusImage(incoming.coverImage)) && !isDefaultBusImage(existing.coverImage)) {
-        merged.coverImage = existing.coverImage;
-    } else if (isDefaultBusImage(merged.coverImage)) {
+    // If existing is identical to initial baseline data, BUT incoming was edited, KEEP incoming!
+    if (isSameAsInitial(existing) && !isSameAsInitial(incoming)) {
+        return { ...existing, ...incoming };
+    }
+
+    const initialPkg = INITIAL_PACKAGES.find(p => p.id === existing.id) || {};
+    const merged = { ...initialPkg, ...incoming, ...existing };
+
+    // Cover image check
+    const existingCover = existing.coverImage;
+    const incomingCover = incoming.coverImage;
+    if (existingCover && !isDefaultBusImage(existingCover)) {
+        merged.coverImage = existingCover;
+    } else if (incomingCover && !isDefaultBusImage(incomingCover)) {
+        merged.coverImage = incomingCover;
+    } else {
         merged.coverImage = 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80';
     }
 
@@ -40,12 +69,10 @@ function mergePackageObjects(existing, incoming) {
     const existingGallery = cleanImageArray(existing.packageGallery);
     const incomingGallery = cleanImageArray(incoming.packageGallery);
 
-    if (existingGallery.length > 0 && incomingGallery.length === 0) {
+    if (existingGallery.length > 0) {
         merged.packageGallery = existingGallery;
     } else if (incomingGallery.length > 0) {
         merged.packageGallery = incomingGallery;
-    } else if (existing.packageGallery && existing.packageGallery.length > 0) {
-        merged.packageGallery = existing.packageGallery;
     }
 
     return merged;
@@ -167,13 +194,48 @@ export async function syncToCloudDatabase() {
     }
 }
 
+export function loadFromLocalStorage() {
+    try {
+        const pkgs = localStorage.getItem('ck_pkgs_v21');
+        const settings = localStorage.getItem('ck_set_v21');
+        const albums = localStorage.getItem('ck_alb_v21');
+        const reviews = localStorage.getItem('ck_rev_v21');
+
+        if (pkgs) {
+            const parsed = JSON.parse(pkgs);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                state.packages = mergePackagesSafely(parsed);
+            }
+        }
+        if (settings) {
+            const parsed = JSON.parse(settings);
+            if (parsed && typeof parsed === 'object') {
+                state.settings = { ...state.settings, ...parsed };
+            }
+        }
+        if (albums) {
+            const parsed = JSON.parse(albums);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                state.albums = mergeAlbumsSafely(parsed);
+            }
+        }
+        if (reviews) {
+            const parsed = JSON.parse(reviews);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                state.reviews = mergeReviewsSafely(parsed);
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ LocalStorage load notice:', e.message);
+    }
+}
+
 export async function fetchStorageData() {
     console.log('☁️ Fetching latest multi-device data from Cloud Database...');
 
-    // Ensure state.packages has all initial packages as baseline
-    state.packages = mergePackagesSafely([]);
-    state.albums = mergeAlbumsSafely([]);
-    state.reviews = mergeReviewsSafely([]);
+    // Restore local device changes first so user edits are immediately loaded
+    loadFromLocalStorage();
+    ensurePackagesHaveSlugsAndHeroProps();
 
     // 1. Fetch from Vercel Multi-Device API (/api/db)
     try {
@@ -197,6 +259,10 @@ export async function fetchStorageData() {
 
                 ensurePackagesHaveSlugsAndHeroProps();
                 saveStore();
+
+                // If local state has custom edits, ensure cloud DB gets updated
+                syncToCloudDatabase();
+
                 console.log('✅ Multi-Device Cloud Data Loaded! Package count:', state.packages.length);
                 return;
             }
