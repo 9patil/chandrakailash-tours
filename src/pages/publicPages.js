@@ -6,6 +6,7 @@ import { getWhatsAppUrl, getInstagramUrl, createSlug, renderMediaUploader, getDy
 import { openPrintablePdf, renderPrintableItineraryModal } from '../utils/pdfGenerator.js';
 import { renderAdminView } from './adminPage.js';
 import { saveStore, savePackageCloud, saveAlbumCloud, saveSettingsCloud, saveReviewCloud } from '../services/storage.js';
+import { INITIAL_REVIEWS } from '../data/initialData.js';
 import { renderLightboxModal } from '../components/public/lightbox.js';
 import { performAdminLogin } from './adminLoginHandler.js';
 
@@ -471,7 +472,7 @@ export function renderMainView(filteredPkgs) {
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        ${state.reviews.map(r => `
+                        ${((state.reviews && state.reviews.length > 0) ? state.reviews : INITIAL_REVIEWS).map(r => `
                             <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition ${r.pinned ? 'border-l-4 border-saffron-500' : ''}">
                                 <div>
                                     <div class="text-amber-400 font-bold text-xs mb-3">⭐⭐⭐⭐⭐ ${r.pinned ? '📌 Featured' : ''}</div>

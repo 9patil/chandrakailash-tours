@@ -33,7 +33,7 @@ export const state = {
     settings: getInitialState('ck_set_v21', INITIAL_SETTINGS),
     packages: [],
     albums: [],
-    reviews: [],
+    reviews: INITIAL_REVIEWS,
     bookings: getInitialState('ck_bk_v21', INITIAL_BOOKINGS),
     translations: getInitialState('ck_i18n_v21', DEFAULT_I18N),
     deletedPackageIds: getInitialState('ck_del_pkgs_v21', []),
