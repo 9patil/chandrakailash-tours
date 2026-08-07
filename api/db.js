@@ -127,7 +127,7 @@ const INITIAL_PACKAGES = [
     "transport": "AC Bus",
     "hotelDetails": "3-Star AC Hotels in Khatu Shyam & Jaipur",
     "meals": "All Meals Included (Rajasthani & Veg Flavors)",
-    "activities": ["Khatu Shyam Baba Darshan", "Salasar Balaji Puja", "Jaipur Hawa Mahal", "Pushkar Brahma Temple"],
+    "activities": ["Baba Khatu Shyam Darshan", "Salasar Balaji Puja", "Jaipur Hawa Mahal", "Pushkar Brahma Temple"],
     "shortDesc": "Blessed yatra to Baba Khatu Shyamji, Salasar Hanumanji Balaji, Pink City Jaipur Hawa Mahal & Pushkar Brahma Temple.",
     "includedServices": ["Travel, Hotel Stay & Veg Meals", "Guided VIP Darshan Lines"],
     "excludedServices": ["Personal Expenses"],
@@ -299,19 +299,13 @@ export default function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             if (body && typeof body === 'object') {
-                if (Array.isArray(body.packages) && body.packages.length > 0) {
-                    const pkgMap = new Map();
-                    (globalCloudStore.packages || []).forEach(p => pkgMap.set(p.id, p));
-                    body.packages.forEach(p => pkgMap.set(p.id, p));
-                    globalCloudStore.packages = Array.from(pkgMap.values());
+                if (Array.isArray(body.packages)) {
+                    globalCloudStore.packages = body.packages;
                 }
-                if (Array.isArray(body.albums) && body.albums.length > 0) {
-                    const albMap = new Map();
-                    (globalCloudStore.albums || []).forEach(a => albMap.set(a.id, a));
-                    body.albums.forEach(a => albMap.set(a.id, a));
-                    globalCloudStore.albums = Array.from(albMap.values());
+                if (Array.isArray(body.albums)) {
+                    globalCloudStore.albums = body.albums;
                 }
-                if (Array.isArray(body.reviews) && body.reviews.length > 0) {
+                if (Array.isArray(body.reviews)) {
                     globalCloudStore.reviews = body.reviews;
                 }
                 if (body.settings && typeof body.settings === 'object') {
