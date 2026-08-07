@@ -85,6 +85,9 @@ function mergeAlbumsSafely(incomingAlbums) {
     return Array.from(albMap.values());
 }
 
+let _syncDebounceTimer = null;
+let _isSyncingCloud = false;
+
 export function saveStore(renderCallback) {
     try {
         localStorage.setItem('ck_set_v21', JSON.stringify(state.settings));
@@ -98,9 +101,17 @@ export function saveStore(renderCallback) {
     if (renderCallback && typeof renderCallback === 'function') {
         renderCallback();
     }
+
+    if (!_isSyncingCloud) {
+        if (_syncDebounceTimer) clearTimeout(_syncDebounceTimer);
+        _syncDebounceTimer = setTimeout(() => {
+            syncToCloudDatabase();
+        }, 300);
+    }
 }
 
 export async function syncToCloudDatabase() {
+    _isSyncingCloud = true;
     saveStore();
     try {
         const payload = {
@@ -121,6 +132,8 @@ export async function syncToCloudDatabase() {
         }
     } catch (err) {
         console.warn('⚠️ Cloud DB Sync Notice:', err.message);
+    } finally {
+        _isSyncingCloud = false;
     }
 }
 
