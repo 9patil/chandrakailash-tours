@@ -133,7 +133,7 @@ const INITIAL_PACKAGES = [
         packageGallery: [
             'images/himalayan_yatra.jpg',
             'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80'
+            'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80'
         ],
         price: 32500,
         originalPrice: 36000,
@@ -188,9 +188,9 @@ const INITIAL_PACKAGES = [
         showInHero: true,
         heroOrder: 2,
         destination: 'Uttar Pradesh (Vrindavan - Mathura)',
-        coverImage: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80',
+        coverImage: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1000&q=80',
         packageGallery: [
-            'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80',
             'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
         ],
         price: 14800,

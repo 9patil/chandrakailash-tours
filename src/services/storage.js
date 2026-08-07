@@ -16,7 +16,11 @@ import {
 
 let lastCloudTimestamp = 0;
 
-const isDefaultBusImage = (url) => typeof url === 'string' && (url.includes('photo-1561361513-2d000a50f0dc') || url.includes('bus') && url.includes('unsplash'));
+const isDefaultBusImage = (url) => typeof url === 'string' && (
+    url.includes('photo-1561361513-2d000a50f0dc') || 
+    url.includes('photo-1609946850426-3023b49c716d') || 
+    (url.includes('bus') && url.includes('unsplash'))
+);
 
 function cleanImageArray(arr) {
     if (!Array.isArray(arr)) return [];
@@ -62,7 +66,7 @@ function mergePackageObjects(existing, incoming) {
     } else if (incomingCover && !isDefaultBusImage(incomingCover)) {
         merged.coverImage = incomingCover;
     } else {
-        merged.coverImage = 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80';
+        merged.coverImage = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1000&q=80';
     }
 
     // Preserve custom package gallery photos
@@ -73,6 +77,8 @@ function mergePackageObjects(existing, incoming) {
         merged.packageGallery = existingGallery;
     } else if (incomingGallery.length > 0) {
         merged.packageGallery = incomingGallery;
+    } else {
+        merged.packageGallery = ['https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80'];
     }
 
     return merged;
@@ -258,6 +264,32 @@ export function loadFromLocalStorage() {
             if (Array.isArray(parsed) && parsed.length > 0) {
                 state.reviews = mergeReviewsSafely(parsed);
             }
+        }
+
+        // Auto-sanitize any leftover broken 404 or bus image URLs in local storage
+        if (Array.isArray(state.packages)) {
+            state.packages.forEach(p => {
+                if (isDefaultBusImage(p.coverImage)) {
+                    p.coverImage = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1000&q=80';
+                }
+                if (Array.isArray(p.packageGallery)) {
+                    p.packageGallery = p.packageGallery.map(img => isDefaultBusImage(img) ? 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80' : img);
+                }
+            });
+        }
+        if (Array.isArray(state.albums)) {
+            state.albums.forEach(a => {
+                if (isDefaultBusImage(a.coverImage)) {
+                    a.coverImage = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80';
+                }
+                if (Array.isArray(a.photos)) {
+                    a.photos.forEach(ph => {
+                        if (ph && isDefaultBusImage(ph.image)) {
+                            ph.image = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80';
+                        }
+                    });
+                }
+            });
         }
     } catch (e) {
         console.warn('⚠️ LocalStorage load notice:', e.message);
