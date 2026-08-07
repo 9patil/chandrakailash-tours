@@ -73,6 +73,32 @@ export function renderLogoSvg(variant = 'horizontal') {
     `;
 }
 
+export function compressBase64Image(base64Str, maxWidth = 800, quality = 0.6) {
+    return new Promise((resolve) => {
+        if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:image/')) {
+            return resolve(base64Str);
+        }
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressed);
+        };
+        img.onerror = () => resolve(base64Str);
+        img.src = base64Str;
+    });
+}
+
 export function compressImageFile(file, options = {}) {
     return new Promise((resolve, reject) => {
         const maxWidth = options.maxWidth || 1200;

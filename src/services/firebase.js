@@ -17,6 +17,7 @@ import {
     INITIAL_BOOKINGS
 } from '../data/initialData.js';
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
+import { compressBase64Image } from '../utils/helpers.js';
 
 const DEFAULT_FIREBASE_CONFIG = {
     apiKey: "AIzaSyB_CKT_PublicWebKeyForFirebase99",
@@ -90,7 +91,8 @@ export async function uploadImageToFirebaseStorage(folder, base64DataUrl, filena
         return downloadUrl;
     } catch (err) {
         console.warn(`⚠️ Firebase Storage Upload Notice (${folder}):`, err.message);
-        return base64DataUrl; // Fallback to base64 Data URL so image is never lost
+        const fallbackCompressed = await compressBase64Image(base64DataUrl, 800, 0.6);
+        return fallbackCompressed; // Fallback compressed base64 so document stays <100KB and Firestore accepts it
     }
 }
 
