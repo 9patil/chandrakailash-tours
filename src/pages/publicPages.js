@@ -246,11 +246,20 @@ export function renderPublicGalleryView() {
                         ${album.photos.map((photo, idx) => `
                             <div 
                                 onclick="window.openAlbumPhoto('${album.id}', ${idx})" 
-                                class="h-60 sm:h-64 bg-slate-900 rounded-2xl overflow-hidden shadow-sm cursor-pointer relative group border border-slate-200 album-card-hover"
+                                class="h-60 sm:h-64 bg-slate-100 rounded-2xl overflow-hidden shadow-sm cursor-pointer relative group border border-slate-200 album-card-hover"
                             >
-                                <img src="${photo.image}" alt="${photo.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 protected-media" loading="lazy" oncontextmenu="return false;" />
+                                <div class="skeleton-shimmer absolute inset-0 z-0 bg-slate-200"></div>
+                                <img 
+                                    src="${photo.image}" 
+                                    alt="${photo.title}" 
+                                    class="w-full h-full object-cover group-hover:scale-105 gallery-img-fade opacity-0 scale-95 protected-media relative z-10" 
+                                    loading="lazy" 
+                                    onload="window.handleImageLoad(this)" 
+                                    onerror="window.handleImageError(this)" 
+                                    oncontextmenu="return false;" 
+                                />
                                 
-                                <div class="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4 text-white">
+                                <div class="absolute inset-0 z-20 bg-gradient-to-t from-navy-950/90 via-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4 text-white">
                                     <div class="space-y-1">
                                         <h4 class="font-bold text-xs line-clamp-1">${photo.title}</h4>
                                         <span class="text-[10px] text-saffron-400 font-semibold flex items-center gap-1">
@@ -377,7 +386,7 @@ export function renderPublicGalleryView() {
                 </div>
             </div>
 
-            <!-- ALBUMS GRID OR PREMIUM EMPTY STATE WITH 200ms FADE -->
+            <!-- ALBUMS GRID OR PREMIUM EMPTY STATE -->
             ${filteredAlbums.length === 0 ? `
                 <div class="text-center py-16 px-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-md mx-auto my-8 animate-fade-in">
                     <div class="w-20 h-20 bg-saffron-50 text-saffron-500 rounded-full flex items-center justify-center text-4xl mx-auto shadow-inner border border-saffron-200">
@@ -393,37 +402,7 @@ export function renderPublicGalleryView() {
                 </div>
             ` : `
                 <div class="admin-albums-grid transition-opacity duration-200 animate-fade-in">
-                    ${filteredAlbums.map(alb => `
-                        <div 
-                            onclick="window.openAlbum('${alb.id}')" 
-                            class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer group album-card-hover flex flex-col justify-between"
-                        >
-                            <div class="relative h-52 sm:h-56 bg-slate-900 overflow-hidden" onclick="window.openAlbum('${alb.id}')">
-                                <img src="${alb.coverImage || (alb.photos && alb.photos[0] ? alb.photos[0].image : 'images/himalayan_yatra.jpg')}" alt="${alb.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 protected-media" loading="lazy" oncontextmenu="return false;" />
-                                
-                                <span class="absolute top-3 left-3 badge-featured text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow">
-                                    📍 ${alb.category}
-                                </span>
-                                
-                                <span class="absolute top-3 right-3 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
-                                    📅 ${alb.year || '2026'}
-                                </span>
-
-                                <div class="absolute bottom-3 right-3 bg-navy-950/90 text-saffron-400 text-xs font-bold px-3 py-1 rounded-xl shadow backdrop-blur border border-saffron-500/30 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-camera"></i> ${(alb.photos || []).length} Photos
-                                </div>
-                            </div>
-
-                            <div class="p-4 space-y-1 bg-white border-t">
-                                <h3 class="font-bold text-base text-navy-900 group-hover:text-saffron-600 transition line-clamp-1">${alb.title}</h3>
-                                <p class="text-xs text-slate-500 line-clamp-2">${alb.description || 'View divine journey photos and batch memories.'}</p>
-                                
-                                <button type="button" onclick="event.stopPropagation(); window.openAlbum('${alb.id}')" class="pt-2 text-xs text-saffron-600 font-bold flex items-center gap-1 hover:underline w-full text-left min-h-[36px]">
-                                    <span>Open Album Gallery</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
+                    ${filteredAlbums.map(alb => renderSingleAlbumCardHTML(alb)).join('')}
                 </div>
             `}
         </div>
@@ -2319,6 +2298,185 @@ window.toggleAddReviewModal = function() {
     if (window.renderApp) window.renderApp();
 };
 
+export function renderSingleAlbumCardHTML(alb) {
+    const coverSrc = alb.coverImage || (alb.photos && alb.photos[0] ? alb.photos[0].image : 'images/prem_mandir_vrindavan.jpg');
+    return `
+        <div 
+            data-album-id="${alb.id}"
+            onclick="window.openAlbum('${alb.id}')" 
+            class="album-card-flip bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm cursor-pointer group album-card-hover flex flex-col justify-between"
+        >
+            <div class="relative h-52 sm:h-56 bg-slate-100 overflow-hidden" onclick="window.openAlbum('${alb.id}')">
+                <div class="skeleton-shimmer absolute inset-0 z-0 bg-slate-200"></div>
+                <img 
+                    src="${coverSrc}" 
+                    alt="${alb.title}" 
+                    class="w-full h-full object-cover group-hover:scale-105 gallery-img-fade opacity-0 scale-95 protected-media relative z-10" 
+                    loading="lazy" 
+                    onload="window.handleImageLoad(this)" 
+                    onerror="window.handleImageError(this)" 
+                    oncontextmenu="return false;" 
+                />
+                
+                <span class="absolute top-3 left-3 z-20 badge-featured text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow">
+                    📍 ${alb.category}
+                </span>
+                
+                <span class="absolute top-3 right-3 z-20 bg-black/70 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                    📅 ${alb.year || '2026'}
+                </span>
+
+                <div class="absolute bottom-3 right-3 z-20 bg-navy-950/90 text-saffron-400 text-xs font-bold px-3 py-1 rounded-xl shadow backdrop-blur border border-saffron-500/30 flex items-center gap-1.5">
+                    <i class="fa-solid fa-camera"></i> ${(alb.photos || []).length} Photos
+                </div>
+            </div>
+
+            <div class="p-4 space-y-1 bg-white border-t relative z-10">
+                <h3 class="font-bold text-base text-navy-900 group-hover:text-saffron-600 transition line-clamp-1">${alb.title}</h3>
+                <p class="text-xs text-slate-500 line-clamp-2">${alb.description || 'View divine journey photos and batch memories.'}</p>
+                
+                <button type="button" onclick="event.stopPropagation(); window.openAlbum('${alb.id}')" class="pt-2 text-xs text-saffron-600 font-bold flex items-center gap-1 hover:underline w-full text-left min-h-[36px]">
+                    <span>Open Album Gallery</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+window.handleImageLoad = function(imgEl) {
+    if (imgEl) {
+        imgEl.classList.remove('opacity-0', 'scale-95');
+        imgEl.classList.add('opacity-100', 'scale-100');
+        const skeleton = imgEl.previousElementSibling;
+        if (skeleton && skeleton.classList.contains('skeleton-shimmer')) {
+            skeleton.style.opacity = '0';
+            setTimeout(() => skeleton.remove(), 250);
+        }
+    }
+};
+
+window.handleImageError = function(imgEl) {
+    if (imgEl) {
+        imgEl.src = 'images/prem_mandir_vrindavan.jpg';
+        imgEl.classList.remove('opacity-0', 'scale-95');
+        imgEl.classList.add('opacity-100', 'scale-100');
+        const skeleton = imgEl.previousElementSibling;
+        if (skeleton && skeleton.classList.contains('skeleton-shimmer')) {
+            skeleton.remove();
+        }
+    }
+};
+
+window.syncFilterChipsUI = function() {
+    const categoryChips = document.querySelectorAll('#gallery-category-chips button');
+    categoryChips.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        const isMatch = onclickAttr.includes(`'${state.galleryDestFilter}'`);
+        if (isMatch) {
+            btn.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap min-h-[44px] flex items-center gap-2 cursor-pointer flex-shrink-0 bg-gradient-to-r from-saffron-500 to-saffron-600 text-white shadow-lg shadow-saffron-500/30 scale-105 border border-saffron-400 font-extrabold';
+        } else {
+            btn.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap min-h-[44px] flex items-center gap-2 cursor-pointer flex-shrink-0 bg-white text-slate-700 hover:text-saffron-600 hover:border-saffron-400 hover:-translate-y-0.5 hover:shadow-md border border-slate-200/80 shadow-sm';
+        }
+    });
+
+    const yearChips = document.querySelectorAll('#gallery-year-chips button');
+    yearChips.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        const isMatch = onclickAttr.includes(`'${state.galleryYearFilter}'`);
+        if (isMatch) {
+            btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap min-h-[44px] flex items-center gap-1.5 cursor-pointer flex-shrink-0 bg-gradient-to-r from-saffron-500 to-saffron-600 text-white shadow-lg shadow-saffron-500/30 scale-105 border border-saffron-400 font-extrabold';
+        } else {
+            btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap min-h-[44px] flex items-center gap-1.5 cursor-pointer flex-shrink-0 bg-white text-slate-700 hover:text-saffron-600 hover:border-saffron-400 hover:-translate-y-0.5 hover:shadow-md border border-slate-200/80 shadow-sm';
+        }
+    });
+};
+
+window.updateGalleryGridFLIP = function() {
+    const gridContainer = document.querySelector('.admin-albums-grid');
+    const mainSection = document.getElementById('gallery-main-section');
+    if (!gridContainer || !mainSection) {
+        return false;
+    }
+
+    const savedScrollY = window.scrollY;
+
+    const firstPositions = new Map();
+    gridContainer.querySelectorAll('[data-album-id]').forEach(card => {
+        const id = card.getAttribute('data-album-id');
+        firstPositions.set(id, card.getBoundingClientRect());
+    });
+
+    const albumsList = getDynamicPackageAlbums();
+    const filteredAlbums = albumsList.filter(a => {
+        const matchDest = state.galleryDestFilter === 'all' || a.category === state.galleryDestFilter || (a.category && a.category.toLowerCase().includes(state.galleryDestFilter.toLowerCase()));
+        const matchYear = state.galleryYearFilter === 'all' || a.year === state.galleryYearFilter;
+        return matchDest && matchYear;
+    });
+
+    const targetIds = new Set(filteredAlbums.map(a => a.id));
+
+    window.syncFilterChipsUI();
+
+    const currentCards = Array.from(gridContainer.querySelectorAll('[data-album-id]'));
+    const cardsToRemove = currentCards.filter(c => !targetIds.has(c.getAttribute('data-album-id')));
+
+    cardsToRemove.forEach(card => {
+        card.style.transition = 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease-out';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.92) translateY(10px)';
+    });
+
+    setTimeout(() => {
+        cardsToRemove.forEach(c => c.remove());
+
+        filteredAlbums.forEach((alb, targetIndex) => {
+            let card = gridContainer.querySelector(`[data-album-id="${alb.id}"]`);
+            if (!card) {
+                const tempWrap = document.createElement('div');
+                tempWrap.innerHTML = renderSingleAlbumCardHTML(alb);
+                card = tempWrap.firstElementChild;
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.96) translateY(12px)';
+                
+                const existingNodes = Array.from(gridContainer.children);
+                if (targetIndex < existingNodes.length) {
+                    gridContainer.insertBefore(card, existingNodes[targetIndex]);
+                } else {
+                    gridContainer.appendChild(card);
+                }
+
+                requestAnimationFrame(() => {
+                    card.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'none';
+                });
+            }
+        });
+
+        gridContainer.querySelectorAll('[data-album-id]').forEach(card => {
+            const id = card.getAttribute('data-album-id');
+            const first = firstPositions.get(id);
+            if (first) {
+                const last = card.getBoundingClientRect();
+                const dx = first.left - last.left;
+                const dy = first.top - last.top;
+                if (dx !== 0 || dy !== 0) {
+                    card.style.transition = 'none';
+                    card.style.transform = `translate(${dx}px, ${dy}px)`;
+                    requestAnimationFrame(() => {
+                        card.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease-out';
+                        card.style.transform = 'none';
+                    });
+                }
+            }
+        });
+
+        window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+    }, cardsToRemove.length > 0 ? 220 : 0);
+
+    return true;
+};
+
 window.handleChipWheelScroll = function(e) {
     if (!e.currentTarget) return;
     if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
@@ -2342,14 +2500,20 @@ window.setGalleryFilter = function(type, value, btnEl) {
         } catch (e) {}
     }
 
-    if (window.renderApp) window.renderApp();
+    const updated = window.updateGalleryGridFLIP();
+    if (!updated && window.renderApp) {
+        window.renderApp();
+    }
 };
 
 window.clearGalleryFilters = function() {
     state.galleryDestFilter = 'all';
     state.galleryYearFilter = 'all';
     window.updateGalleryURLParams();
-    if (window.renderApp) window.renderApp();
+    const updated = window.updateGalleryGridFLIP();
+    if (!updated && window.renderApp) {
+        window.renderApp();
+    }
 };
 
 window.updateGalleryURLParams = function() {

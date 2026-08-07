@@ -63,7 +63,14 @@ export async function initStorage(handleRouteCallback) {
         await fetchStorageData();
         
         setupFirestoreRealtimeSync(() => {
-            if (window.renderApp) window.renderApp();
+            if (state.activeTab === 'gallery' && window.updateGalleryGridFLIP && !state.selectedAlbum) {
+                const updatedFLIP = window.updateGalleryGridFLIP();
+                if (!updatedFLIP && window.renderApp) {
+                    window.renderApp();
+                }
+            } else {
+                if (window.renderApp) window.renderApp();
+            }
         });
     } catch (err) {
         console.warn('⚠️ Storage initialization notice:', err.message);
@@ -197,7 +204,11 @@ export async function saveAlbumData(albumData) {
         state.albums.unshift(albumData);
     }
 
-    if (window.renderApp) window.renderApp();
+    if (state.activeTab === 'gallery' && window.updateGalleryGridFLIP && !state.selectedAlbum) {
+        if (!window.updateGalleryGridFLIP() && window.renderApp) window.renderApp();
+    } else {
+        if (window.renderApp) window.renderApp();
+    }
     return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
 
@@ -222,7 +233,11 @@ export async function deleteAlbumData(albumId) {
     }
 
     state.albums = (state.albums || []).filter(a => a.id !== albumId);
-    if (window.renderApp) window.renderApp();
+    if (state.activeTab === 'gallery' && window.updateGalleryGridFLIP && !state.selectedAlbum) {
+        if (!window.updateGalleryGridFLIP() && window.renderApp) window.renderApp();
+    } else {
+        if (window.renderApp) window.renderApp();
+    }
     return { success: true, albumId, message: 'Album Deleted Successfully' };
 }
 
