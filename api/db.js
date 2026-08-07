@@ -299,14 +299,27 @@ export default function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             if (body && typeof body === 'object') {
+                if (Array.isArray(body.deletedPackageIds)) {
+                    globalCloudStore.deletedPackageIds = Array.from(new Set([...(globalCloudStore.deletedPackageIds || []), ...body.deletedPackageIds]));
+                }
+                if (Array.isArray(body.deletedAlbumIds)) {
+                    globalCloudStore.deletedAlbumIds = Array.from(new Set([...(globalCloudStore.deletedAlbumIds || []), ...body.deletedAlbumIds]));
+                }
+                if (Array.isArray(body.deletedReviewIds)) {
+                    globalCloudStore.deletedReviewIds = Array.from(new Set([...(globalCloudStore.deletedReviewIds || []), ...body.deletedReviewIds]));
+                }
+
                 if (Array.isArray(body.packages)) {
-                    globalCloudStore.packages = body.packages;
+                    const deletedPkgs = new Set(globalCloudStore.deletedPackageIds || []);
+                    globalCloudStore.packages = body.packages.filter(p => p && !deletedPkgs.has(p.id));
                 }
                 if (Array.isArray(body.albums)) {
-                    globalCloudStore.albums = body.albums;
+                    const deletedAlbs = new Set(globalCloudStore.deletedAlbumIds || []);
+                    globalCloudStore.albums = body.albums.filter(a => a && !deletedAlbs.has(a.id));
                 }
                 if (Array.isArray(body.reviews)) {
-                    globalCloudStore.reviews = body.reviews;
+                    const deletedRevs = new Set(globalCloudStore.deletedReviewIds || []);
+                    globalCloudStore.reviews = body.reviews.filter(r => r && !deletedRevs.has(r.id));
                 }
                 if (body.settings && typeof body.settings === 'object') {
                     globalCloudStore.settings = { ...globalCloudStore.settings, ...body.settings };

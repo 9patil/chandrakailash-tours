@@ -79,67 +79,88 @@ function mergePackageObjects(existing, incoming) {
 }
 
 function mergePackagesSafely(incomingPackages) {
+    const deleted = new Set(state.deletedPackageIds || []);
     const pkgMap = new Map();
-    INITIAL_PACKAGES.forEach(p => pkgMap.set(p.id, p));
+    INITIAL_PACKAGES.forEach(p => {
+        if (!deleted.has(p.id)) pkgMap.set(p.id, p);
+    });
 
     (state.packages || []).forEach(p => {
-        const existing = pkgMap.get(p.id);
-        pkgMap.set(p.id, mergePackageObjects(existing, p));
+        if (!deleted.has(p.id)) {
+            const existing = pkgMap.get(p.id);
+            pkgMap.set(p.id, mergePackageObjects(existing, p));
+        }
     });
 
     if (Array.isArray(incomingPackages)) {
         incomingPackages.forEach(p => {
-            const existing = pkgMap.get(p.id);
-            pkgMap.set(p.id, mergePackageObjects(existing, p));
+            if (!deleted.has(p.id)) {
+                const existing = pkgMap.get(p.id);
+                pkgMap.set(p.id, mergePackageObjects(existing, p));
+            }
         });
     }
-    return Array.from(pkgMap.values());
+    return Array.from(pkgMap.values()).filter(p => !deleted.has(p.id));
 }
 
 function mergeAlbumsSafely(incomingAlbums) {
+    const deleted = new Set(state.deletedAlbumIds || []);
     const albMap = new Map();
-    INITIAL_ALBUMS.forEach(a => albMap.set(a.id, a));
+    INITIAL_ALBUMS.forEach(a => {
+        if (!deleted.has(a.id)) albMap.set(a.id, a);
+    });
 
     (state.albums || []).forEach(a => {
-        const existing = albMap.get(a.id);
-        albMap.set(a.id, existing ? { ...existing, ...a } : a);
+        if (!deleted.has(a.id)) {
+            const existing = albMap.get(a.id);
+            albMap.set(a.id, existing ? { ...existing, ...a } : a);
+        }
     });
 
     if (Array.isArray(incomingAlbums)) {
         incomingAlbums.forEach(a => {
-            const existing = albMap.get(a.id);
-            if (existing) {
-                const merged = { ...existing, ...a };
-                if (Array.isArray(existing.photos) && existing.photos.length > 0) {
-                    if (!Array.isArray(a.photos) || a.photos.length === 0) {
-                        merged.photos = existing.photos;
+            if (!deleted.has(a.id)) {
+                const existing = albMap.get(a.id);
+                if (existing) {
+                    const merged = { ...existing, ...a };
+                    if (Array.isArray(existing.photos) && existing.photos.length > 0) {
+                        if (!Array.isArray(a.photos) || a.photos.length === 0) {
+                            merged.photos = existing.photos;
+                        }
                     }
+                    albMap.set(a.id, merged);
+                } else {
+                    albMap.set(a.id, a);
                 }
-                albMap.set(a.id, merged);
-            } else {
-                albMap.set(a.id, a);
             }
         });
     }
-    return Array.from(albMap.values());
+    return Array.from(albMap.values()).filter(a => !deleted.has(a.id));
 }
 
 export function mergeReviewsSafely(incomingReviews) {
+    const deleted = new Set(state.deletedReviewIds || []);
     const revMap = new Map();
-    INITIAL_REVIEWS.forEach(r => revMap.set(r.id, r));
+    INITIAL_REVIEWS.forEach(r => {
+        if (!deleted.has(r.id)) revMap.set(r.id, r);
+    });
 
     (state.reviews || []).forEach(r => {
-        const existing = revMap.get(r.id);
-        revMap.set(r.id, existing ? { ...existing, ...r } : r);
+        if (!deleted.has(r.id)) {
+            const existing = revMap.get(r.id);
+            revMap.set(r.id, existing ? { ...existing, ...r } : r);
+        }
     });
 
     if (Array.isArray(incomingReviews)) {
         incomingReviews.forEach(r => {
-            const existing = revMap.get(r.id);
-            revMap.set(r.id, existing ? { ...existing, ...r } : r);
+            if (!deleted.has(r.id)) {
+                const existing = revMap.get(r.id);
+                revMap.set(r.id, existing ? { ...existing, ...r } : r);
+            }
         });
     }
-    return Array.from(revMap.values());
+    return Array.from(revMap.values()).filter(r => !deleted.has(r.id));
 }
 
 let _syncDebounceTimer = null;
@@ -153,6 +174,9 @@ export function saveStore(renderCallback) {
         localStorage.setItem('ck_rev_v21', JSON.stringify(state.reviews));
         localStorage.setItem('ck_bk_v21', JSON.stringify(state.bookings));
         localStorage.setItem('ck_i18n_v21', JSON.stringify(state.translations));
+        localStorage.setItem('ck_del_pkgs_v21', JSON.stringify(state.deletedPackageIds || []));
+        localStorage.setItem('ck_del_albs_v21', JSON.stringify(state.deletedAlbumIds || []));
+        localStorage.setItem('ck_del_revs_v21', JSON.stringify(state.deletedReviewIds || []));
     } catch (err) {}
 
     if (renderCallback && typeof renderCallback === 'function') {
@@ -175,7 +199,10 @@ export async function syncToCloudDatabase() {
             packages: state.packages || [],
             albums: state.albums || [],
             settings: state.settings || {},
-            reviews: state.reviews || []
+            reviews: state.reviews || [],
+            deletedPackageIds: state.deletedPackageIds || [],
+            deletedAlbumIds: state.deletedAlbumIds || [],
+            deletedReviewIds: state.deletedReviewIds || []
         };
         const res = await fetch('/api/db', {
             method: 'POST',
@@ -200,6 +227,13 @@ export function loadFromLocalStorage() {
         const settings = localStorage.getItem('ck_set_v21');
         const albums = localStorage.getItem('ck_alb_v21');
         const reviews = localStorage.getItem('ck_rev_v21');
+        const delPkgs = localStorage.getItem('ck_del_pkgs_v21');
+        const delAlbs = localStorage.getItem('ck_del_albs_v21');
+        const delRevs = localStorage.getItem('ck_del_revs_v21');
+
+        if (delPkgs) state.deletedPackageIds = JSON.parse(delPkgs);
+        if (delAlbs) state.deletedAlbumIds = JSON.parse(delAlbs);
+        if (delRevs) state.deletedReviewIds = JSON.parse(delRevs);
 
         if (pkgs) {
             const parsed = JSON.parse(pkgs);
@@ -386,6 +420,11 @@ export const savePackageCloud = savePackageData;
 
 export async function deletePackageData(packageId) {
     console.log('🔥 Deleting package:', packageId);
+
+    state.deletedPackageIds = state.deletedPackageIds || [];
+    if (!state.deletedPackageIds.includes(packageId)) {
+        state.deletedPackageIds.push(packageId);
+    }
     
     const targetPkg = (state.packages || []).find(p => p.id === packageId);
     if (targetPkg) {
@@ -397,6 +436,8 @@ export async function deletePackageData(packageId) {
 
     deleteDocFromFirestore(COLLECTIONS.PACKAGES, packageId);
     state.packages = (state.packages || []).filter(p => p.id !== packageId);
+    lastCloudTimestamp = Date.now();
+    saveStore();
     await syncToCloudDatabase();
 
     return { success: true, packageId, message: 'Package Deleted Successfully' };
@@ -433,6 +474,8 @@ export async function saveAlbumData(albumData) {
     }
 
     state.albums = mergeAlbumsSafely(state.albums);
+    lastCloudTimestamp = Date.now();
+    saveStore();
 
     await syncToCloudDatabase();
     return { success: true, album: albumData, message: 'Album Saved Successfully' };
@@ -441,6 +484,11 @@ export async function saveAlbumData(albumData) {
 export const saveAlbumCloud = saveAlbumData;
 
 export async function deleteAlbumData(albumId) {
+    state.deletedAlbumIds = state.deletedAlbumIds || [];
+    if (!state.deletedAlbumIds.includes(albumId)) {
+        state.deletedAlbumIds.push(albumId);
+    }
+
     const targetAlb = (state.albums || []).find(a => a.id === albumId);
     if (targetAlb) {
         if (targetAlb.coverImage) deleteImageFromFirebaseStorage(targetAlb.coverImage);
@@ -453,6 +501,8 @@ export async function deleteAlbumData(albumId) {
 
     deleteDocFromFirestore(COLLECTIONS.ALBUMS, albumId);
     state.albums = (state.albums || []).filter(a => a.id !== albumId);
+    lastCloudTimestamp = Date.now();
+    saveStore();
     await syncToCloudDatabase();
 
     return { success: true, albumId, message: 'Album Deleted Successfully' };
