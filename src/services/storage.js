@@ -19,6 +19,7 @@ let lastCloudTimestamp = 0;
 const isDefaultBusImage = (url) => typeof url === 'string' && (
     url.includes('photo-1561361513-2d000a50f0dc') || 
     url.includes('photo-1609946850426-3023b49c716d') || 
+    url.includes('photo-1564507592333-c60657eea523') || 
     (url.includes('bus') && url.includes('unsplash'))
 );
 
@@ -66,7 +67,7 @@ function mergePackageObjects(existing, incoming) {
     } else if (incomingCover && !isDefaultBusImage(incomingCover)) {
         merged.coverImage = incomingCover;
     } else {
-        merged.coverImage = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1000&q=80';
+        merged.coverImage = 'images/prem_mandir_vrindavan.jpg';
     }
 
     // Preserve custom package gallery photos
@@ -78,7 +79,7 @@ function mergePackageObjects(existing, incoming) {
     } else if (incomingGallery.length > 0) {
         merged.packageGallery = incomingGallery;
     } else {
-        merged.packageGallery = ['https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80'];
+        merged.packageGallery = ['images/prem_mandir_vrindavan.jpg'];
     }
 
     return merged;
@@ -270,22 +271,22 @@ export function loadFromLocalStorage() {
         if (Array.isArray(state.packages)) {
             state.packages.forEach(p => {
                 if (isDefaultBusImage(p.coverImage)) {
-                    p.coverImage = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1000&q=80';
+                    p.coverImage = 'images/prem_mandir_vrindavan.jpg';
                 }
                 if (Array.isArray(p.packageGallery)) {
-                    p.packageGallery = p.packageGallery.map(img => isDefaultBusImage(img) ? 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80' : img);
+                    p.packageGallery = p.packageGallery.map(img => isDefaultBusImage(img) ? 'images/prem_mandir_vrindavan.jpg' : img);
                 }
             });
         }
         if (Array.isArray(state.albums)) {
             state.albums.forEach(a => {
                 if (isDefaultBusImage(a.coverImage)) {
-                    a.coverImage = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80';
+                    a.coverImage = 'images/prem_mandir_vrindavan.jpg';
                 }
                 if (Array.isArray(a.photos)) {
                     a.photos.forEach(ph => {
                         if (ph && isDefaultBusImage(ph.image)) {
-                            ph.image = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80';
+                            ph.image = 'images/prem_mandir_vrindavan.jpg';
                         }
                     });
                 }

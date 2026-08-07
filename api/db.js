@@ -69,9 +69,9 @@ const INITIAL_PACKAGES = [
     "showInHero": true,
     "heroOrder": 2,
     "destination": "Uttar Pradesh (Vrindavan - Mathura)",
-    "coverImage": "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1000&q=80",
+    "coverImage": "images/prem_mandir_vrindavan.jpg",
     "packageGallery": [
-      "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80",
+      "images/prem_mandir_vrindavan.jpg",
       "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80"
     ],
     "price": 14800,
@@ -245,12 +245,12 @@ const INITIAL_ALBUMS = [
   {
     "id": "alb-2",
     "title": "Vrindavan & Mathura Bliss 2026",
-    "coverImage": "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80",
+    "coverImage": "images/prem_mandir_vrindavan.jpg",
     "description": "Prem Mandir illumination, Banke Bihari darshan and Shri Krishna Janmabhoomi memories.",
     "year": "2026",
     "category": "Vrindavan",
     "photos": [
-      { "id": "ap-201", "image": "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80", "title": "Prem Mandir Evening Light Show" },
+      { "id": "ap-201", "image": "images/prem_mandir_vrindavan.jpg", "title": "Prem Mandir Evening Light Show" },
       { "id": "ap-202", "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80", "title": "Yamuna River Aarti Ghat" }
     ]
   },
