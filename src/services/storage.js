@@ -16,18 +16,42 @@ import {
 
 let lastCloudTimestamp = 0;
 
+const isDefaultBusImage = (url) => typeof url === 'string' && url.includes('photo-1561361513-2d000a50f0dc');
+
+function mergePackageObjects(existing, incoming) {
+    if (!existing) return incoming;
+    if (!incoming) return existing;
+
+    const merged = { ...existing, ...incoming };
+
+    // Prevent default unsplash bus image from overwriting user's custom cover photo
+    if (existing.coverImage && isDefaultBusImage(incoming.coverImage) && !isDefaultBusImage(existing.coverImage)) {
+        merged.coverImage = existing.coverImage;
+    }
+
+    // Preserve custom package gallery photos
+    if (Array.isArray(existing.packageGallery) && existing.packageGallery.length > 0) {
+        if (!Array.isArray(incoming.packageGallery) || incoming.packageGallery.length === 0) {
+            merged.packageGallery = existing.packageGallery;
+        }
+    }
+
+    return merged;
+}
+
 function mergePackagesSafely(incomingPackages) {
     const pkgMap = new Map();
     INITIAL_PACKAGES.forEach(p => pkgMap.set(p.id, p));
-    (state.packages || []).forEach(p => pkgMap.set(p.id, p));
+
+    (state.packages || []).forEach(p => {
+        const existing = pkgMap.get(p.id);
+        pkgMap.set(p.id, mergePackageObjects(existing, p));
+    });
+
     if (Array.isArray(incomingPackages)) {
         incomingPackages.forEach(p => {
             const existing = pkgMap.get(p.id);
-            if (existing) {
-                pkgMap.set(p.id, { ...existing, ...p });
-            } else {
-                pkgMap.set(p.id, p);
-            }
+            pkgMap.set(p.id, mergePackageObjects(existing, p));
         });
     }
     return Array.from(pkgMap.values());
@@ -36,9 +60,27 @@ function mergePackagesSafely(incomingPackages) {
 function mergeAlbumsSafely(incomingAlbums) {
     const albMap = new Map();
     INITIAL_ALBUMS.forEach(a => albMap.set(a.id, a));
-    (state.albums || []).forEach(a => albMap.set(a.id, a));
+
+    (state.albums || []).forEach(a => {
+        const existing = albMap.get(a.id);
+        albMap.set(a.id, existing ? { ...existing, ...a } : a);
+    });
+
     if (Array.isArray(incomingAlbums)) {
-        incomingAlbums.forEach(a => albMap.set(a.id, a));
+        incomingAlbums.forEach(a => {
+            const existing = albMap.get(a.id);
+            if (existing) {
+                const merged = { ...existing, ...a };
+                if (Array.isArray(existing.photos) && existing.photos.length > 0) {
+                    if (!Array.isArray(a.photos) || a.photos.length === 0) {
+                        merged.photos = existing.photos;
+                    }
+                }
+                albMap.set(a.id, merged);
+            } else {
+                albMap.set(a.id, a);
+            }
+        });
     }
     return Array.from(albMap.values());
 }
