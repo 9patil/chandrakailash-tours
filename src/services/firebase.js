@@ -228,7 +228,7 @@ export function setupFirestoreRealtimeSync(onUpdateCallback) {
 
     // 4. Reviews Real-Time Listener
     onSnapshot(collection(db, COLLECTIONS.REVIEWS), (snapshot) => {
-        if (snapshot.empty && (!state.reviews || state.reviews.length === 0)) {
+        if (snapshot.empty) {
             console.log('🌱 Reviews collection empty in Firestore. Seeding defaults...');
             for (const rev of INITIAL_REVIEWS) {
                 setDoc(doc(db, COLLECTIONS.REVIEWS, rev.id), rev).catch(e => console.warn(e));

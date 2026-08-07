@@ -1,7 +1,7 @@
 /* चंद्रकैलाश Tours & Travels - Direct Firestore Real-Time Multi-Device Storage Service */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
-import { INITIAL_SETTINGS } from '../data/initialData.js';
+import { INITIAL_SETTINGS, INITIAL_REVIEWS } from '../data/initialData.js';
 import { 
     COLLECTIONS,
     seedFirestoreIfEmpty,
@@ -41,8 +41,10 @@ export async function fetchStorageData() {
         if (Array.isArray(albums)) {
             state.albums = albums;
         }
-        if (Array.isArray(reviews)) {
+        if (Array.isArray(reviews) && reviews.length > 0) {
             state.reviews = reviews;
+        } else {
+            state.reviews = INITIAL_REVIEWS;
         }
         if (siteSettings && typeof siteSettings === 'object') {
             state.settings = { ...INITIAL_SETTINGS, ...state.settings, ...siteSettings };
