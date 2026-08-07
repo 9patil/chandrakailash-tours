@@ -40,7 +40,12 @@ export function renderPackagesManager() {
                                         </div>
                                     </div>
                                 </td>
-                                <td class="p-3.5 text-saffron-600 font-extrabold text-sm">₹${p.price ? p.price.toLocaleString() : 0}</td>
+                                <td class="p-3.5">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-saffron-600 font-extrabold text-sm">₹</span>
+                                        <input type="number" value="${p.price !== undefined ? p.price : ''}" onchange="window.updatePackagePrice('${p.id}', this.value)" class="w-24 p-1.5 border border-saffron-300 rounded-xl text-center font-extrabold text-saffron-600 bg-saffron-50 focus:outline-none focus:ring-2 focus:ring-saffron-500" />
+                                    </div>
+                                </td>
                                 <td class="p-3.5">
                                     <input type="number" value="${p.seatsLeft !== undefined ? p.seatsLeft : 10}" onchange="window.updateSeats('${p.id}', this.value)" class="w-16 p-2 border rounded-xl text-center font-bold text-emerald-700 bg-emerald-50 focus:outline-none" />
                                 </td>
@@ -76,7 +81,10 @@ export function renderPackagesManager() {
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-navy-900 text-sm truncate">${p.name}</h4>
                                 <p class="text-slate-500 text-xs truncate">📍 ${p.destination}</p>
-                                <div class="text-saffron-600 font-extrabold text-sm mt-0.5">₹${p.price ? p.price.toLocaleString() : 0}</div>
+                                <div class="flex items-center gap-1 text-saffron-600 font-extrabold text-sm mt-0.5">
+                                    <span>₹</span>
+                                    <input type="number" value="${p.price !== undefined ? p.price : ''}" onchange="window.updatePackagePrice('${p.id}', this.value)" class="w-24 p-1 border border-saffron-300 rounded-lg text-center font-extrabold text-saffron-600 bg-saffron-50 focus:outline-none" />
+                                </div>
                             </div>
                         </div>
 
@@ -113,6 +121,21 @@ export function renderPackagesManager() {
 }
 
 // Global Handlers
+window.updatePackagePrice = async function(id, val) {
+    const pkg = state.packages.find(p => p.id === id);
+    if (pkg) {
+        const newPrice = Math.max(0, parseInt(val) || 0);
+        pkg.price = newPrice;
+        pkg.originalPrice = newPrice + 3500;
+        try {
+            await savePackageCloud(pkg);
+            if (window.renderApp) window.renderApp();
+        } catch (e) {
+            alert('❌ Failed to update price: ' + (e.message || 'Unknown error'));
+        }
+    }
+};
+
 window.updateSeats = async function(id, val) {
     const pkg = state.packages.find(p => p.id === id);
     if (pkg) {
