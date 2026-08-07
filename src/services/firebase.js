@@ -48,8 +48,8 @@ export const COLLECTIONS = {
     SETTINGS: 'settings'
 };
 
-// Helper: Timeout guard to prevent infinite buffering hanging
-function withTimeout(promise, ms = 3000, operationName = 'Firebase operation') {
+// Helper: Timeout guard to prevent hanging
+function withTimeout(promise, ms = 8000, operationName = 'Firebase operation') {
     return Promise.race([
         promise,
         new Promise((_, reject) => 
@@ -83,9 +83,9 @@ export async function uploadImageToFirebaseStorage(folder, base64DataUrl, filena
         const storageRef = ref(storage, storagePath);
 
         const blob = dataURItoBlob(base64DataUrl);
-        await withTimeout(uploadBytes(storageRef, blob), 3000, `Storage upload (${folder})`);
+        await withTimeout(uploadBytes(storageRef, blob), 8000, `Storage upload (${folder})`);
 
-        const downloadUrl = await withTimeout(getDownloadURL(storageRef), 2000, `Get Storage download URL (${folder})`);
+        const downloadUrl = await withTimeout(getDownloadURL(storageRef), 5000, `Get Storage download URL (${folder})`);
         console.log(`🔥 Firebase Storage Upload Success (${folder}):`, downloadUrl);
         return downloadUrl;
     } catch (err) {
@@ -101,7 +101,7 @@ export async function deleteImageFromFirebaseStorage(url) {
     }
     try {
         const storageRef = ref(storage, url);
-        await withTimeout(deleteObject(storageRef), 2000, 'Storage delete');
+        await withTimeout(deleteObject(storageRef), 5000, 'Storage delete');
         console.log('🔥 Firebase Storage Delete Success:', url);
     } catch (err) {
         console.warn('⚠️ Firebase Storage Delete Notice:', err.message);
@@ -111,30 +111,30 @@ export async function deleteImageFromFirebaseStorage(url) {
 export async function saveDocToFirestore(collectionName, docId, data) {
     try {
         const docRef = doc(db, collectionName, docId);
-        await withTimeout(setDoc(docRef, data, { merge: true }), 3000, `Save document (${collectionName}/${docId})`);
+        await withTimeout(setDoc(docRef, data, { merge: true }), 8000, `Save document (${collectionName}/${docId})`);
         console.log(`🔥 Firestore Save Success (${collectionName}/${docId})`);
         return true;
     } catch (err) {
-        console.warn(`⚠️ Firestore Save Notice (${collectionName}/${docId}):`, err.message);
-        return false;
+        console.error(`❌ Firestore Save Error (${collectionName}/${docId}):`, err.message);
+        throw err;
     }
 }
 
 export async function deleteDocFromFirestore(collectionName, docId) {
     try {
         const docRef = doc(db, collectionName, docId);
-        await withTimeout(deleteDoc(docRef), 3000, `Delete document (${collectionName}/${docId})`);
+        await withTimeout(deleteDoc(docRef), 8000, `Delete document (${collectionName}/${docId})`);
         console.log(`🔥 Firestore Delete Success (${collectionName}/${docId})`);
         return true;
     } catch (err) {
-        console.warn(`⚠️ Firestore Delete Notice (${collectionName}/${docId}):`, err.message);
-        return false;
+        console.error(`❌ Firestore Delete Error (${collectionName}/${docId}):`, err.message);
+        throw err;
     }
 }
 
 export async function fetchCollectionFromFirestore(collectionName) {
     try {
-        const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)), 3000, `Fetch collection (${collectionName})`);
+        const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)), 8000, `Fetch collection (${collectionName})`);
         const items = [];
         querySnapshot.forEach((docSnap) => {
             items.push({ id: docSnap.id, ...docSnap.data() });
@@ -149,7 +149,7 @@ export async function fetchCollectionFromFirestore(collectionName) {
 export async function fetchDocFromFirestore(collectionName, docId) {
     try {
         const docRef = doc(db, collectionName, docId);
-        const docSnap = await withTimeout(getDoc(docRef), 3000, `Fetch document (${collectionName}/${docId})`);
+        const docSnap = await withTimeout(getDoc(docRef), 8000, `Fetch document (${collectionName}/${docId})`);
         return docSnap.exists() ? docSnap.data() : null;
     } catch (err) {
         console.warn(`⚠️ Firestore Doc Fetch Notice (${collectionName}/${docId}):`, err.message);
@@ -159,7 +159,7 @@ export async function fetchDocFromFirestore(collectionName, docId) {
 
 export async function seedFirestoreIfEmpty() {
     try {
-        const pkgsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.PACKAGES)), 2000, 'Seed check');
+        const pkgsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.PACKAGES)), 5000, 'Seed check');
         if (pkgsSnap.empty) {
             console.log('🌱 Firestore empty. Seeding initial packages...');
             for (const pkg of INITIAL_PACKAGES) {
@@ -177,25 +177,21 @@ export function setupFirestoreRealtimeSync(onUpdateCallback) {
 
     // 1. Packages Real-Time Listener
     onSnapshot(collection(db, COLLECTIONS.PACKAGES), (snapshot) => {
-        if (!snapshot.empty) {
-            const pkgs = [];
-            snapshot.forEach(docSnap => pkgs.push({ id: docSnap.id, ...docSnap.data() }));
-            state.packages = pkgs;
-            ensurePackagesHaveSlugsAndHeroProps();
-            console.log('⚡ Real-time Package update received! Count:', pkgs.length);
-            if (onUpdateCallback) onUpdateCallback();
-        }
+        const pkgs = [];
+        snapshot.forEach(docSnap => pkgs.push({ id: docSnap.id, ...docSnap.data() }));
+        state.packages = pkgs;
+        ensurePackagesHaveSlugsAndHeroProps();
+        console.log('⚡ Real-time Package update received! Count:', pkgs.length);
+        if (onUpdateCallback) onUpdateCallback();
     }, (err) => console.warn('⚠️ Packages Sync Notice:', err.message));
 
     // 2. Gallery Albums Real-Time Listener
     onSnapshot(collection(db, COLLECTIONS.ALBUMS), (snapshot) => {
-        if (!snapshot.empty) {
-            const albums = [];
-            snapshot.forEach(docSnap => albums.push({ id: docSnap.id, ...docSnap.data() }));
-            state.albums = albums;
-            console.log('⚡ Real-time Gallery Album update received! Count:', albums.length);
-            if (onUpdateCallback) onUpdateCallback();
-        }
+        const albums = [];
+        snapshot.forEach(docSnap => albums.push({ id: docSnap.id, ...docSnap.data() }));
+        state.albums = albums;
+        console.log('⚡ Real-time Gallery Album update received! Count:', albums.length);
+        if (onUpdateCallback) onUpdateCallback();
     }, (err) => console.warn('⚠️ Gallery Sync Notice:', err.message));
 
     // 3. Site Settings Real-Time Listener
@@ -209,12 +205,10 @@ export function setupFirestoreRealtimeSync(onUpdateCallback) {
 
     // 4. Reviews Real-Time Listener
     onSnapshot(collection(db, COLLECTIONS.REVIEWS), (snapshot) => {
-        if (!snapshot.empty) {
-            const reviews = [];
-            snapshot.forEach(docSnap => reviews.push({ id: docSnap.id, ...docSnap.data() }));
-            state.reviews = reviews;
-            console.log('⚡ Real-time Reviews update received! Count:', reviews.length);
-            if (onUpdateCallback) onUpdateCallback();
-        }
+        const reviews = [];
+        snapshot.forEach(docSnap => reviews.push({ id: docSnap.id, ...docSnap.data() }));
+        state.reviews = reviews;
+        console.log('⚡ Real-time Reviews update received! Count:', reviews.length);
+        if (onUpdateCallback) onUpdateCallback();
     }, (err) => console.warn('⚠️ Reviews Sync Notice:', err.message));
 }

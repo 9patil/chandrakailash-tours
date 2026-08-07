@@ -1,7 +1,7 @@
 /* चंद्रकैलाश Tours & Travels - Hero Slider Manager Component */
 
 import { state } from '../../../context/state.js';
-import { saveStore } from '../../../services/storage.js';
+import { savePackageCloud } from '../../../services/storage.js';
 
 export function renderHeroManager() {
     const totalActive = (state.packages || []).filter(p => p.showInHero !== false).length;
@@ -165,31 +165,49 @@ window.handleHeroSearch = function(val) {
     if (window.renderApp) window.renderApp();
 };
 
-window.togglePackageHeroDisplay = function(id) {
+window.togglePackageHeroDisplay = async function(id) {
     const pkg = state.packages.find(p => p.id === id);
     if (pkg) {
         pkg.showInHero = !(pkg.showInHero !== false);
-        saveStore(window.renderApp);
+        try {
+            await savePackageCloud(pkg);
+            if (window.renderApp) window.renderApp();
+        } catch (e) {
+            alert('❌ Failed to update hero status: ' + (e.message || 'Unknown error'));
+        }
     }
 };
 
-window.moveHeroPackageOrder = function(id, direction) {
+window.moveHeroPackageOrder = async function(id, direction) {
     const sorted = [...state.packages].sort((a, b) => (a.heroOrder || 999) - (b.heroOrder || 999));
     const index = sorted.findIndex(p => p.id === id);
     if (index === -1) return;
 
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= sorted.length) return;
-
-    const temp = sorted[index];
-    sorted[index] = sorted[newIndex];
-    sorted[newIndex] = temp;
-
-    sorted.forEach((p, idx) => {
-        p.heroOrder = idx + 1;
-    });
-
-    saveStore(window.renderApp);
+    if (direction === 'up' && index > 0) {
+        const prev = sorted[index - 1];
+        const curr = sorted[index];
+        const tempOrder = curr.heroOrder || (index + 1);
+        curr.heroOrder = prev.heroOrder || index;
+        prev.heroOrder = tempOrder;
+        try {
+            await Promise.all([savePackageCloud(curr), savePackageCloud(prev)]);
+            if (window.renderApp) window.renderApp();
+        } catch (e) {
+            alert('❌ Failed to update hero order: ' + (e.message || 'Unknown error'));
+        }
+    } else if (direction === 'down' && index < sorted.length - 1) {
+        const next = sorted[index + 1];
+        const curr = sorted[index];
+        const tempOrder = curr.heroOrder || (index + 1);
+        curr.heroOrder = next.heroOrder || (index + 2);
+        next.heroOrder = tempOrder;
+        try {
+            await Promise.all([savePackageCloud(curr), savePackageCloud(next)]);
+            if (window.renderApp) window.renderApp();
+        } catch (e) {
+            alert('❌ Failed to update hero order: ' + (e.message || 'Unknown error'));
+        }
+    }
 };
 
 let draggedHeroId = null;

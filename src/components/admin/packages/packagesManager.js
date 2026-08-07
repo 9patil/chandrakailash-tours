@@ -1,5 +1,5 @@
 import { state } from '../../../context/state.js';
-import { saveStore, deletePackageCloud } from '../../../services/storage.js';
+import { savePackageCloud, deletePackageCloud } from '../../../services/storage.js';
 
 export function renderPackagesManager() {
     const totalPkgs = state.packages.length;
@@ -113,15 +113,20 @@ export function renderPackagesManager() {
 }
 
 // Global Handlers
-window.updateSeats = function(id, val) {
+window.updateSeats = async function(id, val) {
     const pkg = state.packages.find(p => p.id === id);
     if (pkg) {
         pkg.seatsLeft = parseInt(val) || 0;
-        saveStore(window.renderApp);
+        try {
+            await savePackageCloud(pkg);
+            if (window.renderApp) window.renderApp();
+        } catch (e) {
+            alert('❌ Failed to update seats: ' + (e.message || 'Unknown error'));
+        }
     }
 };
 
-window.duplicatePackage = function(id) {
+window.duplicatePackage = async function(id) {
     const pkg = state.packages.find(p => p.id === id);
     if (pkg) {
         const copy = JSON.parse(JSON.stringify(pkg));
@@ -129,8 +134,13 @@ window.duplicatePackage = function(id) {
         copy.name = copy.name + ' (Copy)';
         copy.slug = copy.slug + '-copy';
         copy.heroOrder = state.packages.length + 1;
-        state.packages.push(copy);
-        saveStore(window.renderApp);
+        try {
+            await savePackageCloud(copy);
+            if (window.renderApp) window.renderApp();
+            alert('✅ Package duplicated successfully');
+        } catch (e) {
+            alert('❌ Failed to duplicate package: ' + (e.message || 'Unknown error'));
+        }
     }
 };
 
@@ -139,7 +149,7 @@ window.deletePackage = async function(id) {
         try {
             await deletePackageCloud(id);
             if (window.renderApp) window.renderApp();
-            alert('✅ Package Deleted Successfully');
+            alert('✅ Package deleted successfully.');
         } catch (err) {
             alert('❌ Failed to delete package: ' + (err.message || 'Unknown error'));
         }
