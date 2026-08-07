@@ -1,6 +1,7 @@
 /* चंद्रकैलाश Tours & Travels - Real-Time Multi-Device & Cloud Persistence Service */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
+import { INITIAL_PACKAGES, INITIAL_ALBUMS } from '../data/initialData.js';
 import { 
     COLLECTIONS,
     seedFirestoreIfEmpty,
@@ -14,6 +15,33 @@ import {
 } from './firebase.js';
 
 let lastCloudTimestamp = 0;
+
+function mergePackagesSafely(incomingPackages) {
+    const pkgMap = new Map();
+    INITIAL_PACKAGES.forEach(p => pkgMap.set(p.id, p));
+    (state.packages || []).forEach(p => pkgMap.set(p.id, p));
+    if (Array.isArray(incomingPackages)) {
+        incomingPackages.forEach(p => {
+            const existing = pkgMap.get(p.id);
+            if (existing) {
+                pkgMap.set(p.id, { ...existing, ...p });
+            } else {
+                pkgMap.set(p.id, p);
+            }
+        });
+    }
+    return Array.from(pkgMap.values());
+}
+
+function mergeAlbumsSafely(incomingAlbums) {
+    const albMap = new Map();
+    INITIAL_ALBUMS.forEach(a => albMap.set(a.id, a));
+    (state.albums || []).forEach(a => albMap.set(a.id, a));
+    if (Array.isArray(incomingAlbums)) {
+        incomingAlbums.forEach(a => albMap.set(a.id, a));
+    }
+    return Array.from(albMap.values());
+}
 
 export function saveStore(renderCallback) {
     try {
@@ -47,7 +75,7 @@ export async function syncToCloudDatabase() {
         if (res.ok) {
             const data = await res.json();
             if (data.lastUpdated) lastCloudTimestamp = data.lastUpdated;
-            console.log('☁️ Multi-Device Cloud DB Sync Success!');
+            console.log('☁️ Multi-Device Cloud DB Sync Success! Package count:', (state.packages || []).length);
         }
     } catch (err) {
         console.warn('⚠️ Cloud DB Sync Notice:', err.message);
@@ -57,6 +85,10 @@ export async function syncToCloudDatabase() {
 export async function fetchStorageData() {
     console.log('☁️ Fetching latest multi-device data from Cloud Database...');
 
+    // Ensure state.packages has all initial packages as baseline
+    state.packages = mergePackagesSafely([]);
+    state.albums = mergeAlbumsSafely([]);
+
     // 1. Fetch from Vercel Multi-Device API (/api/db)
     try {
         const res = await fetch('/api/db?t=' + Date.now(), { cache: 'no-store' });
@@ -64,10 +96,10 @@ export async function fetchStorageData() {
             const cloudData = await res.json();
             if (cloudData) {
                 if (Array.isArray(cloudData.packages) && cloudData.packages.length > 0) {
-                    state.packages = cloudData.packages;
+                    state.packages = mergePackagesSafely(cloudData.packages);
                 }
                 if (Array.isArray(cloudData.albums) && cloudData.albums.length > 0) {
-                    state.albums = cloudData.albums;
+                    state.albums = mergeAlbumsSafely(cloudData.albums);
                 }
                 if (Array.isArray(cloudData.reviews) && cloudData.reviews.length > 0) {
                     state.reviews = cloudData.reviews;
@@ -96,8 +128,8 @@ export async function fetchStorageData() {
             fetchDocFromFirestore(COLLECTIONS.SETTINGS, 'siteSettings')
         ]);
 
-        if (Array.isArray(pkgs) && pkgs.length > 0) state.packages = pkgs;
-        if (Array.isArray(albums) && albums.length > 0) state.albums = albums;
+        if (Array.isArray(pkgs) && pkgs.length > 0) state.packages = mergePackagesSafely(pkgs);
+        if (Array.isArray(albums) && albums.length > 0) state.albums = mergeAlbumsSafely(albums);
         if (Array.isArray(reviews) && reviews.length > 0) state.reviews = reviews;
         if (siteSettings && typeof siteSettings === 'object') state.settings = { ...state.settings, ...siteSettings };
 
@@ -121,14 +153,14 @@ export function setupMultiDeviceRealtimeSync() {
                 const cloudData = await res.json();
                 if (cloudData && cloudData.lastUpdated && cloudData.lastUpdated > lastCloudTimestamp) {
                     lastCloudTimestamp = cloudData.lastUpdated;
-                    if (Array.isArray(cloudData.packages)) state.packages = cloudData.packages;
-                    if (Array.isArray(cloudData.albums)) state.albums = cloudData.albums;
+                    if (Array.isArray(cloudData.packages)) state.packages = mergePackagesSafely(cloudData.packages);
+                    if (Array.isArray(cloudData.albums)) state.albums = mergeAlbumsSafely(cloudData.albums);
                     if (Array.isArray(cloudData.reviews)) state.reviews = cloudData.reviews;
                     if (cloudData.settings) state.settings = { ...state.settings, ...cloudData.settings };
 
                     ensurePackagesHaveSlugsAndHeroProps();
                     saveStore();
-                    console.log('⚡ Real-time Multi-Device update received!');
+                    console.log('⚡ Real-time Multi-Device update received! Packages count:', state.packages.length);
                     if (window.renderApp) window.renderApp();
                 }
             }
@@ -180,17 +212,19 @@ export async function savePackageData(packageData) {
         await saveDocToFirestore(COLLECTIONS.PACKAGES, packageData.id, packageData);
     } catch (e) {}
 
-    // Update in-memory state & sync to multi-device cloud database
+    // Update in-memory state safely without losing other packages
     state.packages = state.packages || [];
     const existingIdx = state.packages.findIndex(p => p.id === packageData.id);
     if (existingIdx !== -1) {
-        state.packages[existingIdx] = packageData;
+        state.packages[existingIdx] = { ...state.packages[existingIdx], ...packageData };
     } else {
         state.packages.unshift(packageData);
     }
 
+    state.packages = mergePackagesSafely(state.packages);
+
     await syncToCloudDatabase();
-    console.log('Finished package save!');
+    console.log('Finished package save! Total packages:', state.packages.length);
     return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
 
@@ -243,6 +277,8 @@ export async function saveAlbumData(albumData) {
     } else {
         state.albums.unshift(albumData);
     }
+
+    state.albums = mergeAlbumsSafely(state.albums);
 
     await syncToCloudDatabase();
     return { success: true, album: albumData, message: 'Album Saved Successfully' };

@@ -110,48 +110,161 @@ const INITIAL_PACKAGES = [
   },
   {
     "id": "pkg-3",
-    "name": "Khatu Shyam, Salasar Balaji & Jaipur Tour",
+    "name": "Khatu Shyam, Salasar Balaji & Jaipur Special",
     "slug": "khatu-shyam-salasar",
     "showInHero": true,
     "heroOrder": 3,
     "destination": "Rajasthan (Khatu Shyamji - Salasar)",
-    "coverImage": "https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1000&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1000&q=80",
     "packageGallery": [
-      "https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80"
+      "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80"
     ],
     "price": 16500,
     "originalPrice": 19000,
     "duration": "7 Days / 6 Nights",
     "dates": "20 July - 26 July 2026",
-    "transport": "AC Luxury Bus",
-    "hotelDetails": "3-Star Deluxe Hotels",
-    "meals": "Rajasthani Special Veg Thali & Meals",
-    "activities": ["Baba Khatu Shyam Darshan", "Salasar Hanuman Puja", "Jaipur City Palace & Hawa Mahal"],
+    "transport": "AC Bus",
+    "hotelDetails": "3-Star AC Hotels in Khatu Shyam & Jaipur",
+    "meals": "All Meals Included (Rajasthani & Veg Flavors)",
+    "activities": ["Khatu Shyam Baba Darshan", "Salasar Balaji Puja", "Jaipur Hawa Mahal", "Pushkar Brahma Temple"],
     "shortDesc": "Blessed yatra to Baba Khatu Shyamji, Salasar Hanumanji Balaji, Pink City Jaipur Hawa Mahal & Pushkar Brahma Temple.",
-    "includedServices": [
-      "AC Bus Transport",
-      "3-Star Deluxe Hotel Stay",
-      "Rajasthani Pure Veg Food",
-      "Sightseeing & Temple Passes"
-    ],
-    "excludedServices": ["Personal Purchases"],
-    "rules": ["Carry government ID card."],
+    "includedServices": ["Travel, Hotel Stay & Veg Meals", "Guided VIP Darshan Lines"],
+    "excludedServices": ["Personal Expenses"],
+    "rules": ["Reporting on time at departure point."],
     "itinerary": [
-      { "day": 1, "title": "Travel to Jaipur", "desc": "Departure & travel." },
-      { "day": 2, "title": "Jaipur Sightseeing", "desc": "Amer Fort, Hawa Mahal & Jal Mahal." },
-      { "day": 3, "title": "Khatu Shyamji Darshan", "desc": "Holy Darshan & Nishan Puja at Baba Khatu Shyam Dham." },
-      { "day": 4, "title": "Salasar Balaji & Pushkar", "desc": "Salasar Hanumanji temple & Pushkar Brahma temple." }
+      { "day": 1, "title": "Departure", "desc": "Overnight bus journey to Rajasthan." },
+      { "day": 2, "title": "Khatu Shyamji Arrival & Darshan", "desc": "Hotel check-in & divine darshan of Baba Khatu Shyamji." },
+      { "day": 3, "title": "Salasar Balaji & Rani Sati Dadi", "desc": "Salasar Balaji Mandir & Jhunjhunu Rani Sati Dadi temple visit." },
+      { "day": 4, "title": "Jaipur Pink City Sightseeing", "desc": "Visit Hawa Mahal, Amer Fort, Jal Mahal & Johari Bazaar shopping." },
+      { "day": 5, "title": "Pushkar & Return Journey", "desc": "Pushkar Sarovar bath, Lord Brahma Temple & return drive." }
     ],
     "seatsLeft": 4,
     "status": "open",
     "visible": true,
-    "category": "family",
+    "category": "religious",
     "isFeatured": false,
     "isTrending": true,
     "isNew": true,
     "isSoldOut": false,
     "isUpcoming": false
+  },
+  {
+    "id": "pkg-4",
+    "name": "Rishikesh Adventure & Kedarnath Special",
+    "slug": "rishikesh-ganga-aarti",
+    "showInHero": true,
+    "heroOrder": 4,
+    "destination": "Uttarakhand (Rishikesh & Kedarnath)",
+    "coverImage": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1000&q=80",
+    "packageGallery": [
+      "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
+      "images/himalayan_yatra.jpg"
+    ],
+    "price": 24900,
+    "originalPrice": 28000,
+    "duration": "9 Days / 8 Nights",
+    "dates": "5 Aug - 13 Aug 2026",
+    "transport": "AC Bus",
+    "hotelDetails": "3-Star River View Hotels & Tents",
+    "meals": "Daily Breakfast, Lunch & Dinner",
+    "activities": ["Ganga River Rafting", "Cliff Jumping", "Kedarnath Trek", "Triveni Ghat Aarti"],
+    "shortDesc": "Combine thrilling Ganga river rafting in Rishikesh with holy trek to Kedarnath Temple.",
+    "includedServices": ["Travel, Stay, Veg Meals, Rafting Gear & Safety Instructor"],
+    "excludedServices": ["Helicopter tickets"],
+    "rules": ["Good health & basic physical fitness required."],
+    "itinerary": [
+      { "day": 1, "title": "Departure to Rishikesh", "desc": "Bus departure." },
+      { "day": 2, "title": "Rishikesh White Water Rafting", "desc": "16km Ganga rafting & cliff jumping." },
+      { "day": 3, "title": "Kedarnath Yatra Trek", "desc": "Sonprayag to Kedarnath temple trek & Bholenath darshan." }
+    ],
+    "seatsLeft": 15,
+    "status": "open",
+    "visible": true,
+    "category": "adventure",
+    "isFeatured": false,
+    "isTrending": false,
+    "isNew": true,
+    "isSoldOut": false,
+    "isUpcoming": true
+  },
+  {
+    "id": "pkg-5",
+    "name": "Rajasthan Royal Family & Desert Camping Tour",
+    "slug": "rajasthan-tour",
+    "showInHero": true,
+    "heroOrder": 5,
+    "destination": "Udaipur, Jodhpur & Jaisalmer",
+    "coverImage": "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1000&q=80",
+    "packageGallery": [
+      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80"
+    ],
+    "price": 21500,
+    "originalPrice": 25000,
+    "duration": "8 Days / 7 Nights",
+    "dates": "1 Sept - 8 Sept 2026",
+    "transport": "AC Pushback Bus",
+    "hotelDetails": "Royal Resorts & Sam Sand Dunes Luxury Desert Camps",
+    "meals": "All Meals Included (Rajasthani Thali)",
+    "activities": ["Lake Pichola Boating", "Camel Desert Safari", "Rajasthani Folk Dance", "Mehrangarh Fort"],
+    "shortDesc": "Udaipur Lake Pichola boating, Jaisalmer camel desert safari, Rajasthani folk dance & Jodhpur Mehrangarh Fort.",
+    "includedServices": ["Resort Stay, Desert Camping, Camel Safari, Cultural Night"],
+    "excludedServices": ["Personal Boating & Monument Tickets"],
+    "rules": ["Follow desert camp instructions."],
+    "itinerary": [
+      { "day": 1, "title": "Udaipur Lake City Arrival", "desc": "Visit City Palace & Lake Pichola sunset boat ride." },
+      { "day": 2, "title": "Jaisalmer Fort & Sam Sand Dunes", "desc": "Golden Fort visit & evening camel safari with folk music." }
+    ],
+    "seatsLeft": 0,
+    "status": "full",
+    "visible": true,
+    "category": "family",
+    "isFeatured": true,
+    "isTrending": false,
+    "isNew": false,
+    "isSoldOut": true,
+    "isUpcoming": false
+  }
+];
+
+const INITIAL_ALBUMS = [
+  {
+    "id": "alb-1",
+    "title": "Char Dham Yatra 2026",
+    "coverImage": "images/himalayan_yatra.jpg",
+    "description": "Sacred moments and snow peak views from Kedarnath, Badrinath, Gangotri & Yamunotri pilgrimage batches.",
+    "year": "2026",
+    "category": "Char Dham",
+    "photos": [
+      { "id": "ap-101", "image": "images/himalayan_yatra.jpg", "title": "Kedarnath Bholenath Snow Peak Temple" },
+      { "id": "ap-102", "image": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80", "title": "Badrinath Mandir & Tapt Kund Bath" },
+      { "id": "ap-103", "image": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80", "title": "Haridwar Ganga Aarti Har Ki Pauri" }
+    ]
+  },
+  {
+    "id": "alb-2",
+    "title": "Vrindavan & Mathura Bliss 2026",
+    "coverImage": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80",
+    "description": "Prem Mandir illumination, Banke Bihari darshan and Shri Krishna Janmabhoomi memories.",
+    "year": "2026",
+    "category": "Vrindavan",
+    "photos": [
+      { "id": "ap-201", "image": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80", "title": "Prem Mandir Evening Light Show" },
+      { "id": "ap-202", "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80", "title": "Yamuna River Aarti Ghat" }
+    ]
+  },
+  {
+    "id": "alb-3",
+    "title": "Khatu Shyam & Salasar Balaji Yatra",
+    "coverImage": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80",
+    "description": "Divine darshan of Baba Khatu Shyamji and Salasar Hanumanji Balaji.",
+    "year": "2026",
+    "category": "Khatu Shyam",
+    "photos": [
+      { "id": "ap-301", "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80", "title": "Jaipur Pink City Hawa Mahal" },
+      { "id": "ap-302", "image": "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80", "title": "Salasar Balaji Mandir Entry" }
+    ]
   }
 ];
 
@@ -167,7 +280,7 @@ export default function handler(req, res) {
     if (!globalCloudStore) {
         globalCloudStore = {
             packages: INITIAL_PACKAGES,
-            albums: [],
+            albums: INITIAL_ALBUMS,
             settings: {
                 companyName: 'चंद्रकैलाश Tours & Travels',
                 heroTagline: 'प्रवास फक्त ठिकाणांचा नाही... आठवणींचा असतो.',
@@ -186,14 +299,26 @@ export default function handler(req, res) {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             if (body && typeof body === 'object') {
-                if (Array.isArray(body.packages)) globalCloudStore.packages = body.packages;
-                if (Array.isArray(body.albums)) globalCloudStore.albums = body.albums;
-                if (Array.isArray(body.reviews)) globalCloudStore.reviews = body.reviews;
+                if (Array.isArray(body.packages) && body.packages.length > 0) {
+                    const pkgMap = new Map();
+                    (globalCloudStore.packages || []).forEach(p => pkgMap.set(p.id, p));
+                    body.packages.forEach(p => pkgMap.set(p.id, p));
+                    globalCloudStore.packages = Array.from(pkgMap.values());
+                }
+                if (Array.isArray(body.albums) && body.albums.length > 0) {
+                    const albMap = new Map();
+                    (globalCloudStore.albums || []).forEach(a => albMap.set(a.id, a));
+                    body.albums.forEach(a => albMap.set(a.id, a));
+                    globalCloudStore.albums = Array.from(albMap.values());
+                }
+                if (Array.isArray(body.reviews) && body.reviews.length > 0) {
+                    globalCloudStore.reviews = body.reviews;
+                }
                 if (body.settings && typeof body.settings === 'object') {
                     globalCloudStore.settings = { ...globalCloudStore.settings, ...body.settings };
                 }
                 globalCloudStore.lastUpdated = Date.now();
-                return res.status(200).json({ success: true, message: 'Cloud DB Updated', lastUpdated: globalCloudStore.lastUpdated });
+                return res.status(200).json({ success: true, message: 'Cloud DB Updated', lastUpdated: globalCloudStore.lastUpdated, packageCount: globalCloudStore.packages.length });
             }
         } catch (err) {
             return res.status(400).json({ error: 'Invalid payload' });
