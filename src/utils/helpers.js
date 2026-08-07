@@ -75,9 +75,9 @@ export function renderLogoSvg(variant = 'horizontal') {
 
 export function compressImageFile(file, options = {}) {
     return new Promise((resolve, reject) => {
-        const maxWidth = options.maxWidth || 1600;
-        const maxHeight = options.maxHeight || 1600;
-        const quality = options.quality || 0.82;
+        const maxWidth = options.maxWidth || 1200;
+        const maxHeight = options.maxHeight || 1200;
+        const quality = options.quality || 0.75;
         const maxSizeMB = 10;
 
         if (file.size > maxSizeMB * 1024 * 1024) {
@@ -243,3 +243,45 @@ export function renderMediaUploader({ id, label, currentImage, allowMultiple = f
 
     return html;
 }
+
+const isDefaultBusImage = (url) => typeof url === 'string' && (url.includes('photo-1561361513-2d000a50f0dc') || (url.includes('bus') && url.includes('unsplash')));
+
+export function getDynamicPackageAlbums() {
+    return (state.packages || []).map(pkg => {
+        const rawGallery = Array.isArray(pkg.packageGallery) ? pkg.packageGallery : [];
+        const cleanGallery = rawGallery.filter(img => img && typeof img === 'string' && !isDefaultBusImage(img));
+
+        const coverImg = (pkg.coverImage && !isDefaultBusImage(pkg.coverImage))
+            ? pkg.coverImage
+            : (cleanGallery[0] || 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80');
+
+        const uniqueImgs = Array.from(new Set([coverImg, ...cleanGallery].filter(Boolean)));
+        
+        const yearMatch = (pkg.dates || '').match(/20\d\d/);
+        const year = yearMatch ? yearMatch[0] : '2026';
+        
+        const photos = uniqueImgs.map((img, idx) => ({
+            id: `${pkg.id}_img_${idx}`,
+            title: `${pkg.name} - Photo ${idx + 1}`,
+            image: img
+        }));
+
+        let category = 'Family Tour';
+        if (pkg.destination) {
+            category = pkg.destination.split('(')[0].trim();
+        } else if (pkg.category) {
+            category = pkg.category;
+        }
+
+        return {
+            id: pkg.id,
+            title: pkg.name,
+            description: pkg.shortDesc || `Official tour photos from ${pkg.name}.`,
+            coverImage: coverImg,
+            category: category,
+            year: year,
+            photos: photos
+        };
+    });
+}
+

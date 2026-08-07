@@ -133,7 +133,7 @@ const INITIAL_PACKAGES = [
         packageGallery: [
             'images/himalayan_yatra.jpg',
             'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+            'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80'
         ],
         price: 32500,
         originalPrice: 36000,
@@ -188,9 +188,9 @@ const INITIAL_PACKAGES = [
         showInHero: true,
         heroOrder: 2,
         destination: 'Uttar Pradesh (Vrindavan - Mathura)',
-        coverImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1000&q=80',
+        coverImage: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80',
         packageGallery: [
-            'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80',
             'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
         ],
         price: 14800,
@@ -358,18 +358,18 @@ const INITIAL_ALBUMS = [
         photos: [
             { id: 'ap-101', image: 'images/himalayan_yatra.jpg', title: 'Kedarnath Bholenath Snow Peak Temple' },
             { id: 'ap-102', image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80', title: 'Badrinath Mandir & Tapt Kund Bath' },
-            { id: 'ap-103', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', title: 'Haridwar Ganga Aarti Har Ki Pauri' }
+            { id: 'ap-103', image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80', title: 'Haridwar Ganga Aarti Har Ki Pauri' }
         ]
     },
     {
         id: 'alb-2',
         title: 'Vrindavan & Mathura Bliss 2026',
-        coverImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80',
+        coverImage: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80',
         description: 'Prem Mandir illumination, Banke Bihari darshan and Shri Krishna Janmabhoomi memories.',
         year: '2026',
         category: 'Vrindavan',
         photos: [
-            { id: 'ap-201', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', title: 'Prem Mandir Evening Light Show' },
+            { id: 'ap-201', image: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80', title: 'Prem Mandir Evening Light Show' },
             { id: 'ap-202', image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80', title: 'Yamuna River Aarti Ghat' }
         ]
     },
@@ -423,7 +423,11 @@ const INITIAL_ALBUMS = [
 const INITIAL_REVIEWS = [
     { id: 'r-1', name: 'सुरेश पाटील (Suresh Patil)', city: 'Maharashtra', rating: 5, review: 'चंद्रकैलाश ट्रॅव्हल्स सोबत आमची चारधाम यात्रा अतिशय सुखद झाली. योगेश पाटील सरांचे नियोजन खूप छान होते. जेवणाची आणि राहण्याची उत्तम सोय!', date: 'Oct 2025', pinned: true },
     { id: 'r-2', name: 'सुनिता चौधरी (Sunita Chaudhari)', city: 'Maharashtra', rating: 5, review: 'वृंदावन-मथुरा टूर खूप आवडली. सर्व हॉटेल्स स्वच्छ होती आणि वेळेवर शुद्ध शाकाहारी जेवण मिळाले. अत्यंत विश्वासू ट्रॅव्हल्स!', date: 'Nov 2025', pinned: true },
-    { id: 'r-3', name: 'महेश देशपांडे (Mahesh Deshpande)', city: 'Maharashtra', rating: 5, review: 'खाटू श्यामजी आणि सालासर बालाजी टूरचा अनुभव खूप छान राहिला. लक्झरी बस प्रवास अत्यंत आरामदायी होता.', date: 'Dec 2025', pinned: false }
+    { id: 'r-3', name: 'महेश देशपांडे (Mahesh Deshpande)', city: 'Maharashtra', rating: 5, review: 'खाटू श्यामजी आणि सालासर बालाजी टूरचा अनुभव खूप छान राहिला. लक्झरी बस प्रवास अत्यंत आरामदायी होता.', date: 'Dec 2025', pinned: false },
+    { id: 'r-4', name: 'प्रतीक पाटील (Pratik Patil)', city: 'Jalgaon, Maharashtra', rating: 5, review: 'चंद्रकैलाश ट्रॅव्हल्स सोबत आमची ऋषिकेश आणि चारधाम यात्रा अत्यंत सुंदर व अविस्मरणीय झाली. बस प्रवास अतिशय आरामदायी होता आणि भोजन व्यवस्था उत्कृष्ट होती!', date: 'Jan 2026', pinned: true },
+    { id: 'r-5', name: 'मानसी बर्हाटे (Mansi Barhate)', city: 'Nashik, Maharashtra', rating: 5, review: 'वृंदावन-मथुरा आणि गोकुळ दर्शन टूर खूपच छान आयोजित केली होती. वेळेवर शुद्ध शाकाहारी जेवण आणि उत्कृष्ट हॉटेल मुक्काम. अत्यंत विश्वसनीय सेवा!', date: 'Feb 2026', pinned: true },
+    { id: 'r-6', name: 'आनंद जोशी (Anand Joshi)', city: 'Pune, Maharashtra', rating: 5, review: 'खाटू श्यामजी व सालासर बालाजी यात्रेचे नियोजन सुरेख होते. संपूर्ण कुटुंबासाठी अतिशय सुरक्षित आणि आनंददायी प्रवास अनुभव.', date: 'Mar 2026', pinned: true },
+    { id: 'r-7', name: 'पूजा शिंदे (Pooja Shinde)', city: 'Chhatrapati Sambhajinagar, Maharashtra', rating: 5, review: 'राजस्थान रॉयल डेझर्ट सफारी टूर खूप छान झाली. योगेश पाटील सर स्वतः प्रवाशांची काळजी घेतात. सर्व स्टाफ खूप नम्र व सहकार्य करणारा आहे.', date: 'Apr 2026', pinned: true }
 ];
 
 const INITIAL_BOOKINGS = [
@@ -858,6 +862,42 @@ function createSlug(text) {
         .replace(/\-\-+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
+}
+
+function getDynamicPackageAlbums() {
+    return (state.packages || []).map(pkg => {
+        const pkgGallery = pkg.packageGallery && pkg.packageGallery.length > 0 
+            ? pkg.packageGallery 
+            : (pkg.coverImage ? [pkg.coverImage] : []);
+        
+        const uniqueImgs = Array.from(new Set([pkg.coverImage, ...pkgGallery].filter(Boolean)));
+        
+        const yearMatch = (pkg.dates || '').match(/20\d\d/);
+        const year = yearMatch ? yearMatch[0] : '2026';
+        
+        const photos = uniqueImgs.map((img, idx) => ({
+            id: `${pkg.id}_img_${idx}`,
+            title: `${pkg.name} - Photo ${idx + 1}`,
+            image: img
+        }));
+
+        let category = 'Family Tour';
+        if (pkg.destination) {
+            category = pkg.destination.split('(')[0].trim();
+        } else if (pkg.category) {
+            category = pkg.category;
+        }
+
+        return {
+            id: pkg.id,
+            title: pkg.name,
+            description: pkg.shortDesc || `Official tour photos from ${pkg.name}.`,
+            coverImage: pkg.coverImage || uniqueImgs[0] || 'images/himalayan_yatra.jpg',
+            category: category,
+            year: year,
+            photos: photos
+        };
+    });
 }
 
 function ensurePackagesHaveSlugsAndHeroProps() {
@@ -1418,13 +1458,13 @@ function renderMainView(filteredPkgs) {
                         <h2 class="text-3xl font-extrabold text-white">📸 Latest Photo Highlights</h2>
                     </div>
                     <button onclick="navigate('gallery')" class="btn-premium btn-glow-saffron bg-saffron-500 hover:bg-saffron-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow flex items-center gap-2">
-                        <span>View Complete Gallery (${(state.albums || []).reduce((acc, a) => acc + (a.photos ? a.photos.length : 0), 0)} Photos)</span>
+                        <span>View Complete Gallery (${getDynamicPackageAlbums().reduce((acc, a) => acc + (a.photos ? a.photos.length : 0), 0)} Photos)</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
 
                 <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    ${(state.albums || []).flatMap(a => a.photos || []).slice(0, 8).map(p => `
+                    ${getDynamicPackageAlbums().flatMap(a => a.photos || []).slice(0, 8).map(p => `
                         <div onclick="openLightboxSingle('${p.image}', '${p.title}')" class="h-48 rounded-xl overflow-hidden shadow-md cursor-pointer relative group border border-slate-808">
                             <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" loading="lazy" />
                             <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3 text-xs font-bold text-white">
@@ -1660,12 +1700,13 @@ function renderPublicGalleryView() {
     }
 
     // Main Albums Overview Page:
+    const albumsList = getDynamicPackageAlbums();
     const destinations = ['all', 'Char Dham', 'Vrindavan', 'Rishikesh', 'Khatu Shyam', 'Dwarka', 'Rajasthan', 'Gujarat', 'Adventure', 'Family Tour', 'Customer Memories'];
-    const extractedYears = Array.from(new Set((state.albums || []).map(a => a.year).filter(Boolean))).sort().reverse();
+    const extractedYears = Array.from(new Set(albumsList.map(a => a.year).filter(Boolean))).sort().reverse();
     const years = ['all', ...(extractedYears.length > 0 ? extractedYears : ['2027', '2026', '2025'])];
 
-    const filteredAlbums = (state.albums || []).filter(a => {
-        const matchDest = state.galleryDestFilter === 'all' || a.category === state.galleryDestFilter;
+    const filteredAlbums = albumsList.filter(a => {
+        const matchDest = state.galleryDestFilter === 'all' || a.category === state.galleryDestFilter || (a.category && a.category.toLowerCase().includes(state.galleryDestFilter.toLowerCase()));
         const matchYear = state.galleryYearFilter === 'all' || a.year === state.galleryYearFilter;
         return matchDest && matchYear;
     });
@@ -3115,7 +3156,8 @@ function openLightboxSingle(image, title) {
 }
 
 function openAlbumLightbox(albumId, index) {
-    const album = state.albums.find(a => a.id === albumId);
+    const albums = getDynamicPackageAlbums();
+    const album = albums.find(a => a.id === albumId) || (state.albums || []).find(a => a.id === albumId);
     if (album && album.photos && album.photos.length > 0) {
         state.lightboxPhotoList = album.photos;
         state.lightboxPhotoIndex = index;

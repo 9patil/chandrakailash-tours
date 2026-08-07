@@ -1,7 +1,7 @@
 /* चंद्रकैलाश Tours & Travels - Real-Time Multi-Device & Cloud Persistence Service */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
-import { INITIAL_PACKAGES, INITIAL_ALBUMS } from '../data/initialData.js';
+import { INITIAL_PACKAGES, INITIAL_ALBUMS, INITIAL_REVIEWS } from '../data/initialData.js';
 import { 
     COLLECTIONS,
     seedFirestoreIfEmpty,
@@ -16,7 +16,12 @@ import {
 
 let lastCloudTimestamp = 0;
 
-const isDefaultBusImage = (url) => typeof url === 'string' && url.includes('photo-1561361513-2d000a50f0dc');
+const isDefaultBusImage = (url) => typeof url === 'string' && (url.includes('photo-1561361513-2d000a50f0dc') || url.includes('bus') && url.includes('unsplash'));
+
+function cleanImageArray(arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(img => img && typeof img === 'string' && !isDefaultBusImage(img));
+}
 
 function mergePackageObjects(existing, incoming) {
     if (!existing) return incoming;
@@ -24,16 +29,23 @@ function mergePackageObjects(existing, incoming) {
 
     const merged = { ...existing, ...incoming };
 
-    // Prevent default unsplash bus image from overwriting user's custom cover photo
-    if (existing.coverImage && isDefaultBusImage(incoming.coverImage) && !isDefaultBusImage(existing.coverImage)) {
+    // Prevent default bus image or empty cover from overwriting user's custom cover photo
+    if (existing.coverImage && (!incoming.coverImage || isDefaultBusImage(incoming.coverImage)) && !isDefaultBusImage(existing.coverImage)) {
         merged.coverImage = existing.coverImage;
+    } else if (isDefaultBusImage(merged.coverImage)) {
+        merged.coverImage = 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80';
     }
 
     // Preserve custom package gallery photos
-    if (Array.isArray(existing.packageGallery) && existing.packageGallery.length > 0) {
-        if (!Array.isArray(incoming.packageGallery) || incoming.packageGallery.length === 0) {
-            merged.packageGallery = existing.packageGallery;
-        }
+    const existingGallery = cleanImageArray(existing.packageGallery);
+    const incomingGallery = cleanImageArray(incoming.packageGallery);
+
+    if (existingGallery.length > 0 && incomingGallery.length === 0) {
+        merged.packageGallery = existingGallery;
+    } else if (incomingGallery.length > 0) {
+        merged.packageGallery = incomingGallery;
+    } else if (existing.packageGallery && existing.packageGallery.length > 0) {
+        merged.packageGallery = existing.packageGallery;
     }
 
     return merged;
@@ -83,6 +95,24 @@ function mergeAlbumsSafely(incomingAlbums) {
         });
     }
     return Array.from(albMap.values());
+}
+
+export function mergeReviewsSafely(incomingReviews) {
+    const revMap = new Map();
+    INITIAL_REVIEWS.forEach(r => revMap.set(r.id, r));
+
+    (state.reviews || []).forEach(r => {
+        const existing = revMap.get(r.id);
+        revMap.set(r.id, existing ? { ...existing, ...r } : r);
+    });
+
+    if (Array.isArray(incomingReviews)) {
+        incomingReviews.forEach(r => {
+            const existing = revMap.get(r.id);
+            revMap.set(r.id, existing ? { ...existing, ...r } : r);
+        });
+    }
+    return Array.from(revMap.values());
 }
 
 let _syncDebounceTimer = null;
@@ -143,6 +173,7 @@ export async function fetchStorageData() {
     // Ensure state.packages has all initial packages as baseline
     state.packages = mergePackagesSafely([]);
     state.albums = mergeAlbumsSafely([]);
+    state.reviews = mergeReviewsSafely([]);
 
     // 1. Fetch from Vercel Multi-Device API (/api/db)
     try {
@@ -157,7 +188,7 @@ export async function fetchStorageData() {
                     state.albums = mergeAlbumsSafely(cloudData.albums);
                 }
                 if (Array.isArray(cloudData.reviews) && cloudData.reviews.length > 0) {
-                    state.reviews = cloudData.reviews;
+                    state.reviews = mergeReviewsSafely(cloudData.reviews);
                 }
                 if (cloudData.settings && typeof cloudData.settings === 'object') {
                     state.settings = { ...state.settings, ...cloudData.settings };
@@ -277,6 +308,8 @@ export async function savePackageData(packageData) {
     }
 
     state.packages = mergePackagesSafely(state.packages);
+    lastCloudTimestamp = Date.now();
+    saveStore();
 
     await syncToCloudDatabase();
     console.log('Finished package save! Total packages:', state.packages.length);

@@ -1,8 +1,10 @@
 /* चंद्रकैलाश Tours & Travels - Professional Lightbox Component */
 
 import { state } from '../../context/state.js';
+import { getDynamicPackageAlbums } from '../../utils/helpers.js';
 
 let preloadedImagesCache = new Map();
+
 
 /**
  * Preload next and previous images in background for zero lag navigation
@@ -145,7 +147,8 @@ export function renderLightboxModal() {
 }
 
 window.openAlbum = function(albumId) {
-    const album = (state.albums || []).find(a => a.id === albumId);
+    const albums = getDynamicPackageAlbums();
+    const album = albums.find(a => a.id === albumId) || (state.albums || []).find(a => a.id === albumId);
     if (!album) return;
 
     state.galleryScrollPos = window.scrollY || 0;
@@ -165,7 +168,8 @@ window.openAlbum = function(albumId) {
 };
 
 window.openAlbumPhoto = function(albumId, index) {
-    const album = (state.albums || []).find(a => a.id === albumId);
+    const albums = getDynamicPackageAlbums();
+    const album = albums.find(a => a.id === albumId) || (state.albums || []).find(a => a.id === albumId);
     if (!album || !album.photos || album.photos.length === 0) return;
 
     state.lightboxPhotoList = album.photos;

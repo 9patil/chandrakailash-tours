@@ -1,11 +1,13 @@
 /* चंद्रकैलाश Tours & Travels - Admin Overview Component */
 
 import { state } from '../../../context/state.js';
+import { getDynamicPackageAlbums } from '../../../utils/helpers.js';
 
 export function renderAdminOverview() {
     const totalPkgs = state.packages.length;
     const totalEnquiries = state.bookings.length;
-    const totalAlbums = (state.albums || []).length;
+    const pkgAlbums = getDynamicPackageAlbums();
+    const totalAlbums = pkgAlbums.length;
     const totalRev = state.reviews.length;
 
     return `

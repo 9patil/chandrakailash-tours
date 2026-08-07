@@ -14,7 +14,7 @@ const INITIAL_PACKAGES = [
     "packageGallery": [
       "images/himalayan_yatra.jpg",
       "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80"
+      "https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80"
     ],
     "price": 32500,
     "originalPrice": 36000,
@@ -69,9 +69,9 @@ const INITIAL_PACKAGES = [
     "showInHero": true,
     "heroOrder": 2,
     "destination": "Uttar Pradesh (Vrindavan - Mathura)",
-    "coverImage": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1000&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80",
     "packageGallery": [
-      "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80"
     ],
     "price": 14800,
@@ -239,18 +239,18 @@ const INITIAL_ALBUMS = [
     "photos": [
       { "id": "ap-101", "image": "images/himalayan_yatra.jpg", "title": "Kedarnath Bholenath Snow Peak Temple" },
       { "id": "ap-102", "image": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80", "title": "Badrinath Mandir & Tapt Kund Bath" },
-      { "id": "ap-103", "image": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80", "title": "Haridwar Ganga Aarti Har Ki Pauri" }
+      { "id": "ap-103", "image": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80", "title": "Haridwar Ganga Aarti Har Ki Pauri" }
     ]
   },
   {
     "id": "alb-2",
     "title": "Vrindavan & Mathura Bliss 2026",
-    "coverImage": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80",
+    "coverImage": "https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80",
     "description": "Prem Mandir illumination, Banke Bihari darshan and Shri Krishna Janmabhoomi memories.",
     "year": "2026",
     "category": "Vrindavan",
     "photos": [
-      { "id": "ap-201", "image": "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80", "title": "Prem Mandir Evening Light Show" },
+      { "id": "ap-201", "image": "https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80", "title": "Prem Mandir Evening Light Show" },
       { "id": "ap-202", "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80", "title": "Yamuna River Aarti Ghat" }
     ]
   },

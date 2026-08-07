@@ -2,7 +2,7 @@
 
 import { state, uploaderState } from '../context/state.js';
 import { t } from '../utils/i18n.js';
-import { getWhatsAppUrl, getInstagramUrl, createSlug, renderMediaUploader } from '../utils/helpers.js';
+import { getWhatsAppUrl, getInstagramUrl, createSlug, renderMediaUploader, getDynamicPackageAlbums } from '../utils/helpers.js';
 import { openPrintablePdf, renderPrintableItineraryModal } from '../utils/pdfGenerator.js';
 import { renderAdminView } from './adminPage.js';
 import { saveStore, savePackageCloud, saveAlbumCloud, saveSettingsCloud } from '../services/storage.js';
@@ -266,15 +266,16 @@ export function renderPublicGalleryView() {
         `;
     }
 
+    const albumsList = getDynamicPackageAlbums();
     const defaultCategories = ['all', 'Char Dham', 'Vrindavan', 'Rishikesh', 'Khatu Shyam', 'Dwarka', 'Rajasthan', 'Gujarat', 'Adventure', 'Family Tour', 'Customer Memories'];
-    const albumCategories = (state.albums || []).map(a => a.category).filter(Boolean);
+    const albumCategories = albumsList.map(a => a.category).filter(Boolean);
     const destinations = Array.from(new Set([...defaultCategories, ...albumCategories]));
 
-    const extractedYears = Array.from(new Set((state.albums || []).map(a => a.year).filter(Boolean))).sort((a, b) => b.localeCompare(a));
+    const extractedYears = Array.from(new Set(albumsList.map(a => a.year).filter(Boolean))).sort((a, b) => b.localeCompare(a));
     const years = ['all', ...extractedYears];
 
-    const filteredAlbums = (state.albums || []).filter(a => {
-        const matchDest = state.galleryDestFilter === 'all' || a.category === state.galleryDestFilter;
+    const filteredAlbums = albumsList.filter(a => {
+        const matchDest = state.galleryDestFilter === 'all' || a.category === state.galleryDestFilter || (a.category && a.category.toLowerCase().includes(state.galleryDestFilter.toLowerCase()));
         const matchYear = state.galleryYearFilter === 'all' || a.year === state.galleryYearFilter;
         return matchDest && matchYear;
     });
@@ -459,13 +460,13 @@ export function renderMainView(filteredPkgs) {
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-white">📸 Latest Photo Highlights</h2>
                     </div>
                     <button onclick="window.navigate('gallery')" class="btn-premium btn-glow-saffron bg-saffron-500 hover:bg-saffron-600 text-white font-bold text-xs px-5 py-3 rounded-xl shadow flex items-center gap-2 min-h-[48px]">
-                        <span>View Complete Gallery (${(state.albums || []).reduce((acc, a) => acc + (a.photos ? a.photos.length : 0), 0)} Photos)</span>
+                        <span>View Complete Gallery (${getDynamicPackageAlbums().reduce((acc, a) => acc + (a.photos ? a.photos.length : 0), 0)} Photos)</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
 
                 <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-                    ${(state.albums || []).flatMap(a => (a.photos || []).map((p, idx) => ({ ...p, albumId: a.id, photoIdx: idx }))).slice(0, 8).map(p => `
+                    ${getDynamicPackageAlbums().flatMap(a => (a.photos || []).map((p, idx) => ({ ...p, albumId: a.id, photoIdx: idx }))).slice(0, 8).map(p => `
                         <div onclick="window.openAlbumPhoto('${p.albumId}', ${p.photoIdx})" class="h-40 sm:h-48 rounded-xl overflow-hidden shadow-md cursor-pointer relative group border border-slate-800">
                             <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 protected-media" loading="lazy" />
                             <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3 text-xs font-bold text-white">
@@ -2417,7 +2418,8 @@ window.syncRouteFromURL = function() {
     const albumId = (matchAlbumHash && matchAlbumHash[1]) ? decodeURIComponent(matchAlbumHash[1]) : (matchAlbumPath && matchAlbumPath[1] ? decodeURIComponent(matchAlbumPath[1]) : null);
 
     if (albumId) {
-        const alb = (state.albums || []).find(a => a.id === albumId || (a.title && createSlug(a.title) === albumId));
+        const albums = getDynamicPackageAlbums();
+        const alb = albums.find(a => a.id === albumId || (a.title && createSlug(a.title) === albumId)) || (state.albums || []).find(a => a.id === albumId || (a.title && createSlug(a.title) === albumId));
         if (alb) {
             state.activeTab = 'gallery';
             state.selectedAlbum = alb;

@@ -115,7 +115,7 @@ export const INITIAL_PACKAGES = [
         packageGallery: [
             'images/himalayan_yatra.jpg',
             'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
-            'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+            'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80'
         ],
         price: 32500,
         originalPrice: 36000,
@@ -170,9 +170,9 @@ export const INITIAL_PACKAGES = [
         showInHero: true,
         heroOrder: 2,
         destination: 'Uttar Pradesh (Vrindavan - Mathura)',
-        coverImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1000&q=80',
+        coverImage: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=1000&q=80',
         packageGallery: [
-            'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80',
+            'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80',
             'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
         ],
         price: 14800,
@@ -340,18 +340,18 @@ export const INITIAL_ALBUMS = [
         photos: [
             { id: 'ap-101', image: 'images/himalayan_yatra.jpg', title: 'Kedarnath Bholenath Snow Peak Temple' },
             { id: 'ap-102', image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80', title: 'Badrinath Mandir & Tapt Kund Bath' },
-            { id: 'ap-103', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', title: 'Haridwar Ganga Aarti Har Ki Pauri' }
+            { id: 'ap-103', image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80', title: 'Haridwar Ganga Aarti Har Ki Pauri' }
         ]
     },
     {
         id: 'alb-2',
         title: 'Vrindavan & Mathura Bliss 2026',
-        coverImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80',
+        coverImage: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80',
         description: 'Prem Mandir illumination, Banke Bihari darshan and Shri Krishna Janmabhoomi memories.',
         year: '2026',
         category: 'Vrindavan',
         photos: [
-            { id: 'ap-201', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', title: 'Prem Mandir Evening Light Show' },
+            { id: 'ap-201', image: 'https://images.unsplash.com/photo-1609946850426-3023b49c716d?auto=format&fit=crop&w=800&q=80', title: 'Prem Mandir Evening Light Show' },
             { id: 'ap-202', image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80', title: 'Yamuna River Aarti Ghat' }
         ]
     },
@@ -405,7 +405,11 @@ export const INITIAL_ALBUMS = [
 export const INITIAL_REVIEWS = [
     { id: 'r-1', name: 'सुरेश पाटील (Suresh Patil)', city: 'Maharashtra', rating: 5, review: 'चंद्रकैलाश ट्रॅव्हल्स सोबत आमची चारधाम यात्रा अतिशय सुखद झाली. योगेश पाटील सरांचे नियोजन खूप छान होते. जेवणाची आणि राहण्याची उत्तम सोय!', date: 'Oct 2025', pinned: true },
     { id: 'r-2', name: 'सुनिता चौधरी (Sunita Chaudhari)', city: 'Maharashtra', rating: 5, review: 'वृंदावन-मथुरा टूर खूप आवडली. सर्व हॉटेल्स स्वच्छ होती आणि वेळेवर शुद्ध शाकाहारी जेवण मिळाले. अत्यंत विश्वासू ट्रॅव्हल्स!', date: 'Nov 2025', pinned: true },
-    { id: 'r-3', name: 'महेश देशपांडे (Mahesh Deshpande)', city: 'Maharashtra', rating: 5, review: 'खाटू श्यामजी आणि सालासर बालाजी टूरचा अनुभव खूप छान राहिला. लक्झरी बस प्रवास अत्यंत आरामदायी होता.', date: 'Dec 2025', pinned: false }
+    { id: 'r-3', name: 'महेश देशपांडे (Mahesh Deshpande)', city: 'Maharashtra', rating: 5, review: 'खाटू श्यामजी आणि सालासर बालाजी टूरचा अनुभव खूप छान राहिला. लक्झरी बस प्रवास अत्यंत आरामदायी होता.', date: 'Dec 2025', pinned: false },
+    { id: 'r-4', name: 'प्रतीक पाटील (Pratik Patil)', city: 'Jalgaon, Maharashtra', rating: 5, review: 'चंद्रकैलाश ट्रॅव्हल्स सोबत आमची ऋषिकेश आणि चारधाम यात्रा अत्यंत सुंदर व अविस्मरणीय झाली. बस प्रवास अतिशय आरामदायी होता आणि भोजन व्यवस्था उत्कृष्ट होती!', date: 'Jan 2026', pinned: true },
+    { id: 'r-5', name: 'मानसी बर्हाटे (Mansi Barhate)', city: 'Nashik, Maharashtra', rating: 5, review: 'वृंदावन-मथुरा आणि गोकुळ दर्शन टूर खूपच छान आयोजित केली होती. वेळेवर शुद्ध शाकाहारी जेवण आणि उत्कृष्ट हॉटेल मुक्काम. अत्यंत विश्वसनीय सेवा!', date: 'Feb 2026', pinned: true },
+    { id: 'r-6', name: 'आनंद जोशी (Anand Joshi)', city: 'Pune, Maharashtra', rating: 5, review: 'खाटू श्यामजी व सालासर बालाजी यात्रेचे नियोजन सुरेख होते. संपूर्ण कुटुंबासाठी अतिशय सुरक्षित आणि आनंददायी प्रवास अनुभव.', date: 'Mar 2026', pinned: true },
+    { id: 'r-7', name: 'पूजा शिंदे (Pooja Shinde)', city: 'Chhatrapati Sambhajinagar, Maharashtra', rating: 5, review: 'राजस्थान रॉयल डेझर्ट सफारी टूर खूप छान झाली. योगेश पाटील सर स्वतः प्रवाशांची काळजी घेतात. सर्व स्टाफ खूप नम्र व सहकार्य करणारा आहे.', date: 'Apr 2026', pinned: true }
 ];
 
 export const INITIAL_BOOKINGS = [
