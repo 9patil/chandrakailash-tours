@@ -40,7 +40,7 @@ export function renderPrintableItineraryModal() {
                 </div>
 
                 <!-- BROCHURE HEADER -->
-                <div class="flex flex-col md:flex-row justify-between items-center border-b-2 border-saffron-500 pb-4 gap-4">
+                <div class="flex flex-col md:flex-row justify-between items-center border-b-2 border-saffron-500 pb-4 gap-4 pdf-itinerary-card" style="break-inside: avoid; page-break-inside: avoid;">
                     <div class="text-center md:text-left space-y-1">
                         <h1 class="text-3xl md:text-4xl font-extrabold font-marathi-calligraphy text-navy-900 tracking-tight leading-none">
                             ${state.settings.brandMarathi || 'चंद्रकैलाश'}
@@ -64,7 +64,7 @@ export function renderPrintableItineraryModal() {
                 </div>
 
                 <!-- PACKAGE HERO BANNER & SUMMARY -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 items-center pdf-itinerary-card">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 items-center pdf-itinerary-card" style="break-inside: avoid; page-break-inside: avoid;">
                     <div class="md:col-span-5 h-44 rounded-xl overflow-hidden shadow-sm relative bg-slate-900">
                         <img src="${pkg.coverImage}" alt="${pkg.name}" class="w-full h-full object-cover" />
                         <span class="absolute top-2 left-2 badge-featured text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full shadow">
@@ -97,20 +97,20 @@ export function renderPrintableItineraryModal() {
                         <span class="text-saffron-600 font-bold">${itineraryList.length} Days Plan</span>
                     </h3>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-[11px]">
                         ${itineraryList.map(i => `
-                            <div class="pdf-itinerary-card bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+                            <div class="pdf-itinerary-card bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-2" style="break-inside: avoid; page-break-inside: avoid; -webkit-column-break-inside: avoid;">
                                 <div class="flex justify-between items-center gap-2">
-                                    <span class="bg-saffron-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full inline-block">Day ${i.day}</span>
-                                    <span class="font-bold text-navy-900 text-[11px] line-clamp-1">${i.title}</span>
+                                    <span class="bg-saffron-500 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full inline-block">Day ${i.day}</span>
+                                    <span class="font-bold text-navy-900 text-xs line-clamp-1">${i.title}</span>
                                 </div>
-                                <p class="text-slate-600 text-[10px] whitespace-pre-line leading-relaxed font-marathi-body">${i.description || i.desc || ''}</p>
+                                <p class="text-slate-600 text-[11px] whitespace-pre-line leading-relaxed font-marathi-body">${i.description || i.desc || ''}</p>
                                 
                                 ${(i.hotel || i.meal || i.transport) ? `
-                                    <div class="flex flex-wrap gap-1 text-[9px] pt-1 border-t border-slate-100">
-                                        ${i.hotel ? `<span class="bg-slate-100 text-slate-800 font-bold px-1.5 py-0.5 rounded">🏨 ${i.hotel}</span>` : ''}
-                                        ${i.meal ? `<span class="bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded">🍽️ ${i.meal}</span>` : ''}
-                                        ${i.transport ? `<span class="bg-amber-50 text-amber-800 font-bold px-1.5 py-0.5 rounded">🚌 ${i.transport}</span>` : ''}
+                                    <div class="flex flex-wrap gap-1 text-[9px] pt-1.5 border-t border-slate-100">
+                                        ${i.hotel ? `<span class="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded">🏨 ${i.hotel}</span>` : ''}
+                                        ${i.meal ? `<span class="bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded">🍽️ ${i.meal}</span>` : ''}
+                                        ${i.transport ? `<span class="bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded">🚌 ${i.transport}</span>` : ''}
                                     </div>
                                 ` : ''}
                             </div>
@@ -118,32 +118,8 @@ export function renderPrintableItineraryModal() {
                     </div>
                 </div>
 
-                <!-- INCLUSIONS, EXCLUSIONS & RULES -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] pdf-itinerary-card pt-2">
-                    <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 space-y-1">
-                        <h4 class="font-bold text-emerald-900 text-[11px]">✓ What's Included:</h4>
-                        <ul class="space-y-0.5 text-emerald-950 text-[10px]">
-                            ${(pkg.includedServices || []).map(inc => `<li>✓ ${inc}</li>`).join('')}
-                        </ul>
-                    </div>
-
-                    <div class="bg-rose-50/70 p-3 rounded-xl border border-rose-200 space-y-1">
-                        <h4 class="font-bold text-rose-900 text-[11px]">✗ What's Excluded:</h4>
-                        <ul class="space-y-0.5 text-rose-950 text-[10px]">
-                            ${(pkg.excludedServices || []).map(exc => `<li>✗ ${exc}</li>`).join('')}
-                        </ul>
-                    </div>
-
-                    <div class="bg-amber-50/70 p-3 rounded-xl border border-amber-200 space-y-1">
-                        <h4 class="font-bold text-amber-900 text-[11px]">⚠️ Rules & Requirements:</h4>
-                        <ul class="space-y-0.5 text-amber-950 text-[10px]">
-                            ${(pkg.rules || []).map(r => `<li>• ${r}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-
                 <!-- FOOTER WITH QR CODE -->
-                <div class="border-t-2 border-saffron-500 pt-3 flex justify-between items-center text-xs pdf-itinerary-card">
+                <div class="border-t-2 border-saffron-500 pt-3 flex justify-between items-center text-xs pdf-itinerary-card" style="break-inside: avoid; page-break-inside: avoid;">
                     <div class="space-y-1">
                         <div class="font-extrabold text-navy-900 text-sm">${state.settings.companyName}</div>
                         <div class="flex items-center gap-3 text-[11px] text-slate-600">
