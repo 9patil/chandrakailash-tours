@@ -1,4 +1,4 @@
-/* चंद्रकैलाश Tours & Travels - Complete Firestore & Firebase Storage Service */
+/* चंद्रकैलाश Tours & Travels - Complete Firestore & Local Persistence Service */
 
 import { state, ensurePackagesHaveSlugsAndHeroProps } from '../context/state.js';
 import { 
@@ -12,6 +12,21 @@ import {
     deleteImageFromFirebaseStorage,
     setupFirestoreRealtimeSync
 } from './firebase.js';
+
+export function saveStore(renderCallback) {
+    try {
+        localStorage.setItem('ck_set_v21', JSON.stringify(state.settings));
+        localStorage.setItem('ck_pkgs_v21', JSON.stringify(state.packages));
+        localStorage.setItem('ck_alb_v21', JSON.stringify(state.albums));
+        localStorage.setItem('ck_rev_v21', JSON.stringify(state.reviews));
+        localStorage.setItem('ck_bk_v21', JSON.stringify(state.bookings));
+        localStorage.setItem('ck_i18n_v21', JSON.stringify(state.translations));
+    } catch (err) {}
+
+    if (renderCallback && typeof renderCallback === 'function') {
+        renderCallback();
+    }
+}
 
 export async function fetchStorageData() {
     console.log('🔥 Fetching latest data from Firestore Database...');
@@ -52,24 +67,22 @@ export async function fetchStorageData() {
         }
 
         ensurePackagesHaveSlugsAndHeroProps();
+        saveStore();
         console.log('✅ Firestore Load Success! Loaded package count:', (state.packages || []).length);
     } catch (err) {
         console.error('❌ Cloud unavailable:', err.message);
+        ensurePackagesHaveSlugsAndHeroProps();
+        saveStore();
     }
 }
 
 export const fetchCloudData = fetchStorageData;
 
-export function saveStore(renderCallback) {
-    if (renderCallback && typeof renderCallback === 'function') {
-        renderCallback();
-    }
-}
-
 export async function initStorage(handleRouteCallback) {
     try {
         await fetchStorageData();
         setupFirestoreRealtimeSync(() => {
+            saveStore();
             if (window.renderApp) window.renderApp();
         });
     } catch (err) {
@@ -116,7 +129,7 @@ export async function savePackageData(packageData) {
         console.warn('Firestore save notice:', e.message);
     }
 
-    // Update in-memory state
+    // Update in-memory state & sync to persistent storage immediately
     state.packages = state.packages || [];
     const existingIdx = state.packages.findIndex(p => p.id === packageData.id);
     if (existingIdx !== -1) {
@@ -125,6 +138,7 @@ export async function savePackageData(packageData) {
         state.packages.unshift(packageData);
     }
 
+    saveStore();
     console.log('Finished package save!');
     return { success: true, package: packageData, message: 'Package Saved Successfully' };
 }
@@ -148,6 +162,7 @@ export async function deletePackageData(packageId) {
 
     deleteDocFromFirestore(COLLECTIONS.PACKAGES, packageId);
     state.packages = (state.packages || []).filter(p => p.id !== packageId);
+    saveStore();
 
     return { success: true, packageId, message: 'Package Deleted Successfully' };
 }
@@ -183,6 +198,7 @@ export async function saveAlbumData(albumData) {
         state.albums.unshift(albumData);
     }
 
+    saveStore();
     return { success: true, album: albumData, message: 'Album Saved Successfully' };
 }
 
@@ -205,6 +221,7 @@ export async function deleteAlbumData(albumId) {
 
     deleteDocFromFirestore(COLLECTIONS.ALBUMS, albumId);
     state.albums = (state.albums || []).filter(a => a.id !== albumId);
+    saveStore();
 
     return { success: true, albumId, message: 'Album Deleted Successfully' };
 }
@@ -227,6 +244,7 @@ export async function saveSettingsData(settingsData) {
     saveDocToFirestore(COLLECTIONS.SETTINGS, 'siteSettings', settingsData);
 
     state.settings = { ...state.settings, ...settingsData };
+    saveStore();
     return { success: true, settings: state.settings, message: 'Settings Saved Successfully' };
 }
 

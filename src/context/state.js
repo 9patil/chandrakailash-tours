@@ -15,15 +15,27 @@ export const uploaderState = {
     dragOver: {}  // id -> boolean
 };
 
+function getInitialState(key, defaultVal) {
+    try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(defaultVal) && Array.isArray(parsed) && parsed.length > 0) return parsed;
+            if (!Array.isArray(defaultVal) && parsed && typeof parsed === 'object') return { ...defaultVal, ...parsed };
+        }
+    } catch (e) {}
+    return defaultVal;
+}
+
 export const state = {
     activeTab: 'home',
     currentLang: 'en',
-    settings: INITIAL_SETTINGS,
-    packages: INITIAL_PACKAGES,
-    albums: INITIAL_ALBUMS,
-    reviews: INITIAL_REVIEWS,
-    bookings: INITIAL_BOOKINGS,
-    translations: DEFAULT_I18N,
+    settings: getInitialState('ck_set_v21', INITIAL_SETTINGS),
+    packages: getInitialState('ck_pkgs_v21', INITIAL_PACKAGES),
+    albums: getInitialState('ck_alb_v21', INITIAL_ALBUMS),
+    reviews: getInitialState('ck_rev_v21', INITIAL_REVIEWS),
+    bookings: getInitialState('ck_bk_v21', INITIAL_BOOKINGS),
+    translations: getInitialState('ck_i18n_v21', DEFAULT_I18N),
     selectedPkg: null,
     editingPkg: null,
     editingAlbum: null,
