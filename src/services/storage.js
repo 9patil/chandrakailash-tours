@@ -90,24 +90,27 @@ export async function savePackageData(packageData) {
         packageData.coverImage = await uploadImageToFirebaseStorage('packages', packageData.coverImage, 'pkg-cover');
     }
 
-    // 2. Upload Gallery Images (if base64)
+    // 2. Upload Gallery Images (in parallel)
     if (Array.isArray(packageData.packageGallery)) {
-        for (let i = 0; i < packageData.packageGallery.length; i++) {
-            const img = packageData.packageGallery[i];
-            if (typeof img === 'string' && img.startsWith('data:image/')) {
-                packageData.packageGallery[i] = await uploadImageToFirebaseStorage('packages', img, `pkg-gal-${i + 1}`);
-            }
-        }
+        packageData.packageGallery = await Promise.all(
+            packageData.packageGallery.map((img, i) => {
+                if (typeof img === 'string' && img.startsWith('data:image/')) {
+                    return uploadImageToFirebaseStorage('packages', img, `pkg-gal-${i + 1}`);
+                }
+                return Promise.resolve(img);
+            })
+        );
     }
 
-    // 3. Upload Day-wise Itinerary Images (if base64)
+    // 3. Upload Day-wise Itinerary Images (in parallel)
     if (Array.isArray(packageData.itinerary)) {
-        for (let i = 0; i < packageData.itinerary.length; i++) {
-            const day = packageData.itinerary[i];
-            if (day && day.image && typeof day.image === 'string' && day.image.startsWith('data:image/')) {
-                day.image = await uploadImageToFirebaseStorage('packages', day.image, `pkg-day-${i + 1}`);
-            }
-        }
+        await Promise.all(
+            packageData.itinerary.map(async (day, i) => {
+                if (day && day.image && typeof day.image === 'string' && day.image.startsWith('data:image/')) {
+                    day.image = await uploadImageToFirebaseStorage('packages', day.image, `pkg-day-${i + 1}`);
+                }
+            })
+        );
     }
 
     // 4. Save Package Document to Firestore

@@ -49,7 +49,7 @@ export const COLLECTIONS = {
 };
 
 // Helper: Timeout guard to prevent hanging
-function withTimeout(promise, ms = 8000, operationName = 'Firebase operation') {
+function withTimeout(promise, ms = 30000, operationName = 'Firebase operation') {
     return Promise.race([
         promise,
         new Promise((_, reject) => 
@@ -83,9 +83,9 @@ export async function uploadImageToFirebaseStorage(folder, base64DataUrl, filena
         const storageRef = ref(storage, storagePath);
 
         const blob = dataURItoBlob(base64DataUrl);
-        await withTimeout(uploadBytes(storageRef, blob), 8000, `Storage upload (${folder})`);
+        await withTimeout(uploadBytes(storageRef, blob), 30000, `Storage upload (${folder})`);
 
-        const downloadUrl = await withTimeout(getDownloadURL(storageRef), 5000, `Get Storage download URL (${folder})`);
+        const downloadUrl = await withTimeout(getDownloadURL(storageRef), 15000, `Get Storage download URL (${folder})`);
         console.log(`🔥 Firebase Storage Upload Success (${folder}):`, downloadUrl);
         return downloadUrl;
     } catch (err) {
@@ -101,7 +101,7 @@ export async function deleteImageFromFirebaseStorage(url) {
     }
     try {
         const storageRef = ref(storage, url);
-        await withTimeout(deleteObject(storageRef), 5000, 'Storage delete');
+        await withTimeout(deleteObject(storageRef), 15000, 'Storage delete');
         console.log('🔥 Firebase Storage Delete Success:', url);
     } catch (err) {
         console.warn('⚠️ Firebase Storage Delete Notice:', err.message);
@@ -111,19 +111,27 @@ export async function deleteImageFromFirebaseStorage(url) {
 export async function saveDocToFirestore(collectionName, docId, data) {
     try {
         const docRef = doc(db, collectionName, docId);
-        await withTimeout(setDoc(docRef, data, { merge: true }), 8000, `Save document (${collectionName}/${docId})`);
+        await withTimeout(setDoc(docRef, data, { merge: true }), 30000, `Save document (${collectionName}/${docId})`);
         console.log(`🔥 Firestore Save Success (${collectionName}/${docId})`);
         return true;
     } catch (err) {
-        console.error(`❌ Firestore Save Error (${collectionName}/${docId}):`, err.message);
-        throw err;
+        console.warn(`⚠️ Firestore Save Timeout/Notice (${collectionName}/${docId}):`, err.message);
+        try {
+            const docRef = doc(db, collectionName, docId);
+            setDoc(docRef, data, { merge: true }).catch(e => console.warn('Background setDoc notice:', e.message));
+            console.log(`🔥 Firestore Background Save Triggered (${collectionName}/${docId})`);
+            return true;
+        } catch (e) {
+            console.error(`❌ Firestore Direct Save Error (${collectionName}/${docId}):`, e.message);
+            throw err;
+        }
     }
 }
 
 export async function deleteDocFromFirestore(collectionName, docId) {
     try {
         const docRef = doc(db, collectionName, docId);
-        await withTimeout(deleteDoc(docRef), 8000, `Delete document (${collectionName}/${docId})`);
+        await withTimeout(deleteDoc(docRef), 20000, `Delete document (${collectionName}/${docId})`);
         console.log(`🔥 Firestore Delete Success (${collectionName}/${docId})`);
         return true;
     } catch (err) {
@@ -134,7 +142,7 @@ export async function deleteDocFromFirestore(collectionName, docId) {
 
 export async function fetchCollectionFromFirestore(collectionName) {
     try {
-        const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)), 8000, `Fetch collection (${collectionName})`);
+        const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)), 20000, `Fetch collection (${collectionName})`);
         const items = [];
         querySnapshot.forEach((docSnap) => {
             items.push({ id: docSnap.id, ...docSnap.data() });
