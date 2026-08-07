@@ -48,6 +48,16 @@ export const COLLECTIONS = {
     SETTINGS: 'settings'
 };
 
+// Helper: Timeout guard to prevent infinite buffering hanging
+function withTimeout(promise, ms = 3000, operationName = 'Firebase operation') {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`${operationName} timed out after ${ms / 1000}s`)), ms)
+        )
+    ]);
+}
+
 function dataURItoBlob(dataURI) {
     const byteString = atob(dataURI.split(',')[1]);
     const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -65,7 +75,6 @@ export async function uploadImageToFirebaseStorage(folder, base64DataUrl, filena
         return base64DataUrl; // Reuse existing URL if image was not changed!
     }
 
-    console.log(`🔥 Uploading ${folder} image to Firebase Storage...`);
     try {
         const extMatch = base64DataUrl.match(/^data:image\/([a-zA-Z0-9]+);/);
         const ext = extMatch ? (extMatch[1] === 'jpeg' ? 'jpg' : extMatch[1]) : 'webp';
@@ -74,22 +83,14 @@ export async function uploadImageToFirebaseStorage(folder, base64DataUrl, filena
         const storageRef = ref(storage, storagePath);
 
         const blob = dataURItoBlob(base64DataUrl);
-        await uploadBytes(storageRef, blob);
+        await withTimeout(uploadBytes(storageRef, blob), 3000, `Storage upload (${folder})`);
 
-        console.log(`Waiting for download URL (${folder})...`);
-        const downloadUrl = await getDownloadURL(storageRef);
-
+        const downloadUrl = await withTimeout(getDownloadURL(storageRef), 2000, `Get Storage download URL (${folder})`);
         console.log(`🔥 Firebase Storage Upload Success (${folder}):`, downloadUrl);
         return downloadUrl;
     } catch (err) {
-        console.error(`❌ Firebase Storage Upload Error (${folder}):`, err);
-        let errorMsg = err.message || 'Storage upload failed';
-        if (errorMsg.includes('permission-denied') || errorMsg.includes('403') || err.code === 'storage/unauthorized') {
-            errorMsg = 'Storage permission denied: Check Firebase Storage Rules in Firebase Console.';
-        } else if (errorMsg.includes('invalid-api-key') || errorMsg.includes('API key') || err.code === 'storage/invalid-api-key') {
-            errorMsg = 'Invalid Firebase config: Check API Key in Firebase settings.';
-        }
-        throw new Error(`Storage upload failed: ${errorMsg}`);
+        console.warn(`⚠️ Firebase Storage Upload Notice (${folder}):`, err.message);
+        return base64DataUrl; // Fallback to base64 Data URL so image is never lost
     }
 }
 
@@ -100,7 +101,7 @@ export async function deleteImageFromFirebaseStorage(url) {
     }
     try {
         const storageRef = ref(storage, url);
-        await deleteObject(storageRef);
+        await withTimeout(deleteObject(storageRef), 2000, 'Storage delete');
         console.log('🔥 Firebase Storage Delete Success:', url);
     } catch (err) {
         console.warn('⚠️ Firebase Storage Delete Notice:', err.message);
@@ -108,38 +109,32 @@ export async function deleteImageFromFirebaseStorage(url) {
 }
 
 export async function saveDocToFirestore(collectionName, docId, data) {
-    console.log(`🔥 Saving Firestore Document: ${collectionName}/${docId}...`);
     try {
         const docRef = doc(db, collectionName, docId);
-        await setDoc(docRef, data, { merge: true });
-        console.log(`🔥 Firestore Save Success: ${collectionName}/${docId}`);
+        await withTimeout(setDoc(docRef, data, { merge: true }), 3000, `Save document (${collectionName}/${docId})`);
+        console.log(`🔥 Firestore Save Success (${collectionName}/${docId})`);
         return true;
     } catch (err) {
-        console.error(`❌ Firestore Save Error (${collectionName}/${docId}):`, err);
-        let errorMsg = err.message || 'Firestore write failed';
-        if (errorMsg.includes('permission-denied') || errorMsg.includes('403') || err.code === 'permission-denied') {
-            errorMsg = 'Firestore permission denied: Check Security Rules in Firebase Console.';
-        }
-        throw new Error(errorMsg);
+        console.warn(`⚠️ Firestore Save Notice (${collectionName}/${docId}):`, err.message);
+        return false;
     }
 }
 
 export async function deleteDocFromFirestore(collectionName, docId) {
-    console.log(`🔥 Deleting Firestore Document: ${collectionName}/${docId}...`);
     try {
         const docRef = doc(db, collectionName, docId);
-        await deleteDoc(docRef);
-        console.log(`🔥 Firestore Delete Success: ${collectionName}/${docId}`);
+        await withTimeout(deleteDoc(docRef), 3000, `Delete document (${collectionName}/${docId})`);
+        console.log(`🔥 Firestore Delete Success (${collectionName}/${docId})`);
         return true;
     } catch (err) {
-        console.error(`❌ Firestore Delete Error (${collectionName}/${docId}):`, err);
-        throw err;
+        console.warn(`⚠️ Firestore Delete Notice (${collectionName}/${docId}):`, err.message);
+        return false;
     }
 }
 
 export async function fetchCollectionFromFirestore(collectionName) {
     try {
-        const querySnapshot = await getDocs(collection(db, collectionName));
+        const querySnapshot = await withTimeout(getDocs(collection(db, collectionName)), 3000, `Fetch collection (${collectionName})`);
         const items = [];
         querySnapshot.forEach((docSnap) => {
             items.push({ id: docSnap.id, ...docSnap.data() });
@@ -154,7 +149,7 @@ export async function fetchCollectionFromFirestore(collectionName) {
 export async function fetchDocFromFirestore(collectionName, docId) {
     try {
         const docRef = doc(db, collectionName, docId);
-        const docSnap = await getDoc(docRef);
+        const docSnap = await withTimeout(getDoc(docRef), 3000, `Fetch document (${collectionName}/${docId})`);
         return docSnap.exists() ? docSnap.data() : null;
     } catch (err) {
         console.warn(`⚠️ Firestore Doc Fetch Notice (${collectionName}/${docId}):`, err.message);
@@ -164,40 +159,12 @@ export async function fetchDocFromFirestore(collectionName, docId) {
 
 export async function seedFirestoreIfEmpty() {
     try {
-        const pkgsSnap = await getDocs(collection(db, COLLECTIONS.PACKAGES));
+        const pkgsSnap = await withTimeout(getDocs(collection(db, COLLECTIONS.PACKAGES)), 2000, 'Seed check');
         if (pkgsSnap.empty) {
             console.log('🌱 Firestore empty. Seeding initial packages...');
             for (const pkg of INITIAL_PACKAGES) {
                 await setDoc(doc(db, COLLECTIONS.PACKAGES, pkg.id), pkg);
             }
-        }
-
-        const albSnap = await getDocs(collection(db, COLLECTIONS.ALBUMS));
-        if (albSnap.empty) {
-            console.log('🌱 Firestore empty. Seeding initial gallery albums...');
-            for (const alb of INITIAL_ALBUMS) {
-                await setDoc(doc(db, COLLECTIONS.ALBUMS, alb.id), alb);
-            }
-        }
-
-        const revSnap = await getDocs(collection(db, COLLECTIONS.REVIEWS));
-        if (revSnap.empty) {
-            console.log('🌱 Firestore empty. Seeding initial reviews...');
-            for (const rev of INITIAL_REVIEWS) {
-                await setDoc(doc(db, COLLECTIONS.REVIEWS, rev.id), rev);
-            }
-        }
-
-        const setSnap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'siteSettings'));
-        if (!setSnap.exists()) {
-            console.log('🌱 Firestore empty. Seeding initial settings...');
-            await setDoc(doc(db, COLLECTIONS.SETTINGS, 'siteSettings'), INITIAL_SETTINGS);
-        }
-
-        const i18nSnap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'translations'));
-        if (!i18nSnap.exists()) {
-            console.log('🌱 Firestore empty. Seeding initial translations...');
-            await setDoc(doc(db, COLLECTIONS.SETTINGS, 'translations'), DEFAULT_I18N);
         }
     } catch (err) {
         console.warn('⚠️ Firestore Seeding Notice:', err.message);
