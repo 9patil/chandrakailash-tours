@@ -2542,26 +2542,7 @@ window.backToGallery = function(e) {
     state.selectedAlbum = null;
     state.activeTab = 'gallery';
 
-    if (window.location.hash !== '#gallery') {
-        try {
-            history.pushState(null, '', '#gallery');
-        } catch (err) {
-            window.location.hash = '#gallery';
-        }
-    }
-
     if (window.renderApp) window.renderApp();
-
-    setTimeout(() => {
-        const galleryEl = document.getElementById('gallery-main-section');
-        if (galleryEl) {
-            galleryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else if (state.galleryScrollPos !== undefined) {
-            window.scrollTo({ top: state.galleryScrollPos, behavior: 'smooth' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }, 50);
 };
 
 window.syncRouteFromURL = function() {

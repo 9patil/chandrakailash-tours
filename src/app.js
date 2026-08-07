@@ -9,6 +9,11 @@ import { t, toggleLanguage } from './utils/i18n.js';
 import { getWhatsAppUrl, getInstagramUrl, renderLogoSvg, compressImageFile } from './utils/helpers.js';
 import { renderMainView, renderModals, attachAdminLoginListeners } from './pages/publicPages.js';
 
+// Disable browser automatic scroll restoration so page refresh always opens at Hero section top
+if ('scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual';
+}
+
 export function render() {
     const pkgDialog = document.getElementById('pkg-modal-dialog');
     const pkgBackdrop = document.getElementById('pkg-modal-backdrop');
@@ -511,11 +516,24 @@ window.addEventListener('popstate', () => {
     if (window.renderApp) window.renderApp();
 });
 
-initStorage(() => {
+let isAppBooted = false;
+
+function bootAppOnce() {
     if (window.syncRouteFromURL) window.syncRouteFromURL();
     render();
+    if (!isAppBooted) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        isAppBooted = true;
+    }
+}
+
+initStorage(() => {
+    bootAppOnce();
 });
 
-if (window.syncRouteFromURL) window.syncRouteFromURL();
-render();
+bootAppOnce();
+
+window.addEventListener('load', () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+});
 
